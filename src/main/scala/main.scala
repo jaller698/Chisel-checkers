@@ -17,6 +17,12 @@ class ChiselCheckers(n: Int) extends Module {
     else sEmpty
   }))
 
+  def printBoard()={
+    for(i <- 0 until 31){
+      print(board(i))
+    }
+  }
+
   io.isMoveValid := false.B
 
   when(io.reset) {
@@ -46,7 +52,7 @@ class ChiselCheckers(n: Int) extends Module {
       }.otherwise {
         io.isMoveValid := false.B
       }
-
+    
     }
     is(sBlack) {
       when(io.to === io.from + 4.U || io.to === io.from + 3.U) {
