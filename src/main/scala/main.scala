@@ -11,13 +11,15 @@ class ChiselCheckers(n: Int) extends Module {
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
   val board_size = 32
 
+  val ne = sWhiteKing
+  printf(cf"$ne")
+
   val board = RegInit(VecInit(Seq.tabulate(board_size) { i =>
     if (i < 12) sBlack
     else if (i >= 20) sWhite
     else sEmpty
   }))
-
-  printBoard()
+  
 
   io.isMoveValid := false.B
 
