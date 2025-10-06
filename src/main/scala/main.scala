@@ -17,11 +17,7 @@ class ChiselCheckers(n: Int) extends Module {
     else sEmpty
   }))
 
-  def printBoard()={
-    for(i <- 0 until 31){
-      print(board(i))
-    }
-  }
+  printBoard()
 
   io.isMoveValid := false.B
 
@@ -32,6 +28,7 @@ class ChiselCheckers(n: Int) extends Module {
       else sEmpty
     })
   }
+  
 
   val from = io.from
   val to = io.to
@@ -78,3 +75,4 @@ object ChiselCheckers extends App {
   println("Generating the Chisel Checkers hardware")
   emitVerilog(new ChiselCheckers(16))
 }
+
