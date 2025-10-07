@@ -38,5 +38,4 @@ class CheckerRulesTest extends AnyFlatSpec with Matchers {
     val b = initialBoard
     isMoveValid(21, 16, b) shouldBe true
   }
-
 }
