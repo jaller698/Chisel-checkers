@@ -22,6 +22,25 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.isMoveValid.expect(false.B)
     }
   }
+  it should "Single move test" in {
+    test(new ChiselCheckers(5)) { dut =>
+      val b = initialBoard
+      // val fromSet = Seq(18)
+      val from = 18
+      val to = 14
+      dut.io.from.poke(from.U)
+      dut.io.to.poke(to.U)
+      dut.clock.step()
+
+      val ref = isMoveValid(from, to, b)
+      if (ref)
+        dut.io.isMoveValid
+          .expect(true.B, s"from $from to $to should be valid")
+      else
+        dut.io.isMoveValid
+          .expect(false.B, s"from $from to $to should be invalid")
+    }
+  }
 
   it should "pass movement test" in {
     test(new ChiselCheckers(5)) { dut =>

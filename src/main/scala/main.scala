@@ -30,6 +30,7 @@ class ChiselCheckers(n: Int) extends Module {
   val from = io.from
   val to = io.to
   val piece = board(from)
+
   switch(piece) {
     is(sEmpty) {
       io.isMoveValid := false.B
@@ -66,6 +67,26 @@ class ChiselCheckers(n: Int) extends Module {
       }
     }
   }
+
+}
+
+//Note this class does not consider if the move is legal or not, that needs to be checked beforehand
+class Mover extends Module {
+  val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
+  val io = IO(new Bundle {
+    val boardread = Input(Vec(32, UInt(4.W))) // The current boardstate
+    val from = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
+    val to = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
+    val boardwrite =
+      Output(Vec(32, UInt(4.W))) // The boardstate we return after the move
+  })
+
+  // Implement check for valid move.
+
+  io.boardwrite := io.boardread
+  io.boardwrite(io.to) := io.boardread(io.from)
+  io.boardwrite(io.from) := sEmpty
+
 }
 
 object ChiselCheckers extends App {
