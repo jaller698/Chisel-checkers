@@ -11,9 +11,6 @@ class ChiselCheckers(n: Int) extends Module {
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
   val board_size = 32
 
-  //val ne = sWhiteKing
-  //printf(cf"$ne")
-
   val board = RegInit(VecInit(Seq.tabulate(board_size) { i =>
     if (i < 12) sBlack
     else if (i >= 20) sWhite
@@ -21,13 +18,6 @@ class ChiselCheckers(n: Int) extends Module {
   }))
 
   io.isMoveValid := false.B
-
-  // val move= Module(new Mover())
-  // move.io.boardread:=board
-  // move.io.to:=io.to
-  // move.io.from:=io.from
-  // board:=move.io.boardwrite
-
 
   when(io.reset) {
     board := VecInit(Seq.tabulate(board_size) { i =>
@@ -87,14 +77,15 @@ class Mover extends Module {
     val boardread = Input(Vec(32, UInt(4.W))) // The current boardstate
     val from = Input(UInt(20.W)) // A numbered place on the board (default 0-31)
     val to = Input(UInt(20.W)) // A numbered place on the board (default 0-31)
-    val boardwrite = Output(Vec(32, UInt(4.W))) //The boardstate we return after the move
+    val boardwrite =
+      Output(Vec(32, UInt(4.W))) // The boardstate we return after the move
   })
 
-  //Implement check for valid move.
-  
-  io.boardwrite:=io.boardread
-  io.boardwrite(io.to):=io.boardread(io.from)
-  io.boardwrite(io.from):=sEmpty
+  // Implement check for valid move.
+
+  io.boardwrite := io.boardread
+  io.boardwrite(io.to) := io.boardread(io.from)
+  io.boardwrite(io.from) := sEmpty
 }
 
 object ChiselCheckers extends App {

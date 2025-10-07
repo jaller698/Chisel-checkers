@@ -24,7 +24,7 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
   }
   it should "Single move test" in {
     test(new ChiselCheckers(5)) { dut =>
-       val b = initialBoard
+      val b = initialBoard
       // val fromSet = Seq(18)
       val from = 18
       val to = 14
