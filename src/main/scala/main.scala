@@ -84,28 +84,14 @@ class ChiselCheckers(n: Int) extends Module {
 class Mover extends Module {
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
   val io = IO(new Bundle {
-    //val boardread = Input(Vec(32, UInt(4.W))) // The current boardstate
+    val boardread = Input(Vec(32, UInt(4.W))) // The current boardstate
     val from = Input(UInt(20.W)) // A numbered place on the board (default 0-31)
     val to = Input(UInt(20.W)) // A numbered place on the board (default 0-31)
     val boardwrite = Output(Vec(32, UInt(4.W))) //The boardstate we return after the move
   })
-
-
-  val boardread = RegInit(VecInit(Seq.tabulate(32) { i =>
-    if (i < 12) sBlack
-    else if (i >= 20) sWhite
-    else sEmpty
-  }))
-  
-  val tmp1=boardread
-  
-  //val tmp1=io.boardread
-  //printf(cf"$tmp1")
-  tmp1(io.to):=tmp1(io.from)
-  tmp1(io.from):=sEmpty
-
-  io.boardwrite:=tmp1
-
+  io.boardwrite:=io.boardread
+  io.boardwrite(io.to):=io.boardread(io.from)
+  io.boardwrite(io.from):=sEmpty
 }
 
 object ChiselCheckers extends App {
