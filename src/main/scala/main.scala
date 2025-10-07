@@ -89,6 +89,9 @@ class Mover extends Module {
     val to = Input(UInt(20.W)) // A numbered place on the board (default 0-31)
     val boardwrite = Output(Vec(32, UInt(4.W))) //The boardstate we return after the move
   })
+
+  //Implement check for valid move.
+  
   io.boardwrite:=io.boardread
   io.boardwrite(io.to):=io.boardread(io.from)
   io.boardwrite(io.from):=sEmpty
