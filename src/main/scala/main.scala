@@ -86,6 +86,7 @@ class Mover extends Module {
   io.boardwrite := io.boardread
   io.boardwrite(io.to) := io.boardread(io.from)
   io.boardwrite(io.from) := sEmpty
+
 }
 
 object ChiselCheckers extends App {
