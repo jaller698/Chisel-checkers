@@ -75,8 +75,8 @@ class Mover extends Module {
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
   val io = IO(new Bundle {
     val boardread = Input(Vec(32, UInt(4.W))) // The current boardstate
-    val from = Input(UInt(20.W)) // A numbered place on the board (default 0-31)
-    val to = Input(UInt(20.W)) // A numbered place on the board (default 0-31)
+    val from = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
+    val to = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
     val boardwrite =
       Output(Vec(32, UInt(4.W))) // The boardstate we return after the move
   })
