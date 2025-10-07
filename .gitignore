@@ -3,6 +3,5 @@
 project
 target
 .vscode
-.scalafmt.conf
 ChiselCheckers.sv
 test_run_dir
