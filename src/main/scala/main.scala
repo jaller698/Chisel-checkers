@@ -70,6 +70,41 @@ class ChiselCheckers(n: Int) extends Module {
 
 }
 
+class AtkDet extends Module {
+  val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
+  val io = IO(new Bundle {
+    val board = Input(Vec(32, UInt(4.W))) // The current boardstate
+    // Dont know if this is the correct data structure, but i hope it works.
+    val atkList =
+      Output(Vec(64, (UInt(4.W), UInt(4.W)))) // Output a list of all attacks
+  })
+
+  for (i <- io.board) {
+    switch(io.board(i)) {
+      // is(sEmpty) {
+        
+      // }
+      is(sWhite) {
+        val scol= i % 4.U
+        //i think it auto rounds down, im not sure tho XD
+        val srow= i / 4.U
+        if()
+      }
+      is(sWhiteKing) {
+        
+      }
+      is(sBlack) {
+
+      }
+      is(sBlackKing) {
+
+      }
+
+    }
+
+  }
+}
+
 //Note this class does not consider if the move is legal or not, that needs to be checked beforehand
 class Mover extends Module {
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
