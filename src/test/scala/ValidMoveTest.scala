@@ -15,7 +15,7 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
   behavior of "ChiselCheckers (current: isMoveValid always false)"
 
   it should "pass" in {
-    test(new ChiselCheckers(5)) { dut =>
+    test(new ChiselCheckers()) { dut =>
       dut.io.from.poke(20.U)
       dut.io.to.poke(20.U)
       dut.clock.step()
@@ -23,7 +23,7 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
     }
   }
   it should "Single move test" in {
-    test(new ChiselCheckers(5)) { dut =>
+    test(new ChiselCheckers()) { dut =>
       val b = initialBoard
       // val fromSet = Seq(18)
       val from = 18
@@ -43,7 +43,7 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
   }
 
   it should "pass movement test" in {
-    test(new ChiselCheckers(5)) { dut =>
+    test(new ChiselCheckers()) { dut =>
       val b = initialBoard
       val fromSet = Seq(
         20,
