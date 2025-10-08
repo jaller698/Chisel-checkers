@@ -1,10 +1,10 @@
 import chisel3._
 import chisel3.util._
 
-class ChiselCheckers(n: Int) extends Module {
+class ChiselCheckers() extends Module {
   val io = IO(new Bundle {
-    val from = Input(UInt(n.W)) // A numbered place on the board (default 0-31)
-    val to = Input(UInt(n.W)) // A numbered place on the board (default 0-31)
+    val from = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
+    val to = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
     val reset = Input(Bool())
     val isMoveValid = Output(Bool())
   })
@@ -91,5 +91,5 @@ class Mover extends Module {
 
 object ChiselCheckers extends App {
   println("Generating the Chisel Checkers hardware")
-  emitVerilog(new ChiselCheckers(16))
+  emitVerilog(new ChiselCheckers())
 }
