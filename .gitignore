@@ -1,0 +1,7 @@
+.bloop
+.metals
+project
+target
+.vscode
+ChiselCheckers.sv
+test_run_dir
