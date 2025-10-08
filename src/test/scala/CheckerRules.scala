@@ -29,14 +29,8 @@ object CheckerRules {
   // Convert 8x8 board into linear 0-31 indexing
   private def idx(row: Int, col: Int): Option[Int] = {
     if (row < 0 || row >= 8 || col < 0 || col >= 8) None
-
-    val offset = if (row % 2 == 0) 1 else 0
-    if ((col - offset) % 2 == 0 && col % 2 == offset) {
-      val p = (col - offset) / 2
-      Some(row * 4 + p)
-    } else {
-      None
-    }
+    if ((row + col) % 2 != 1) return None
+    return Some(row * 4 + col / 2)
   }
 
   case class Move(from: Int, to: Int)
