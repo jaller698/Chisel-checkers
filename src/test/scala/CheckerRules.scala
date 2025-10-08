@@ -28,13 +28,10 @@ object CheckerRules {
 
   // Convert 8x8 board into linear 0-31 indexing
   private def idx(row: Int, col: Int): Option[Int] = {
-   
     if (row < 0 || row >= 8 || col < 0 || col >= 8) None
-
-    if((row+col)%2!=1)return None
-    return Some(row*4+col/2)
+    if ((row + col) % 2 != 1) return None
+    return Some(row * 4 + col / 2)
   }
-
 
   case class Move(from: Int, to: Int)
 
