@@ -38,7 +38,12 @@ class ChiselCheckers() extends Module {
     else sEmpty
   }))
 
-  io.isMoveValid := false.B
+  val moveValidator = Module(new MoveValidator())
+  moveValidator.io.from := io.from
+  moveValidator.io.to := io.to
+  moveValidator.io.piece := board(io.from)
+
+  io.isMoveValid := moveValidator.io.isMoveValid
   io.colorAtTile := 0.U // just for init, idk if good yet
 
   switch(io.mode) {
