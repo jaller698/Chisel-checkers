@@ -38,12 +38,7 @@ class ChiselCheckers() extends Module {
     else sEmpty
   }))
 
-  val moveValidator = Module(new MoveValidator())
-  moveValidator.io.from := io.from
-  moveValidator.io.to := io.to
-  moveValidator.io.piece := board(io.from)
-
-  io.isMoveValid := moveValidator.io.isMoveValid
+  io.isMoveValid := false.B
   io.colorAtTile := 0.U // just for init, idk if good yet
 
   switch(io.mode) {
@@ -73,47 +68,12 @@ class ChiselCheckers() extends Module {
 
     is("b01".U) { // PLAYBOARD
 
-      val from = io.from
-      val to = io.to
-      val piece = board(from)
+      val moveValidator = Module(new MoveValidator())
+      moveValidator.io.from := io.from
+      moveValidator.io.to := io.to
+      moveValidator.io.piece := board(io.from)
 
-      switch(piece) {
-        is(sEmpty) {
-          io.isMoveValid := false.B
-        }
-        is(sWhite) {
-          val fromCol = io.from % 4.U
-          val toCol = io.to % 4.U
-          when(
-            (io.to === io.from - 4.U || io.to === io.from - 5.U) &&
-              !(fromCol === 0.U && toCol === 3.U) &&
-              !(fromCol === 3.U && toCol === 0.U)
-          ) {
-            io.isMoveValid := true.B
-          }.otherwise {
-            io.isMoveValid := false.B
-          }
-
-        }
-        is(sBlack) {
-          when(io.to === io.from + 4.U || io.to === io.from + 3.U) { // 90% sure this is wrong, havent fixed.
-            io.isMoveValid := true.B
-          }.otherwise {
-            io.isMoveValid := false.B
-          }
-        }
-        is(sWhiteKing, sBlackKing) {
-          when(
-            (to === from - 4.U || to === from - 5.U || to === from + 4.U || to === from + 3.U) &&
-              ((to % 4.U =/= 0.U || from % 4.U =/= 3.U) && (to % 4.U =/= 3.U || from % 4.U =/= 0.U))
-          ) {
-            io.isMoveValid := true.B
-          }.otherwise {
-            io.isMoveValid := false.B
-          }
-        }
-      }
-
+      io.isMoveValid := moveValidator.io.isMoveValid
     }
     is("b10".U) { // viewboard.
 
