@@ -23,9 +23,7 @@ class ChiselCheckers() extends Module {
     val isMoveValid = Output(Bool())
     // used for viewboard:
     // we also use FROM mentioned in PLAYBOARD.
-    val colorAtTile = Output(
-      UInt(3.W)
-    ) // sends out one from the enum below, which is one of sEmpty, sWhite, etc.
+    val colorAtTile = Output(UInt(3.W)) // sends out one from the enum below, which is one of sEmpty, sWhite, etc.
 
   })
 
