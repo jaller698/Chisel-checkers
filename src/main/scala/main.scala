@@ -16,12 +16,12 @@ class ChiselCheckers() extends Module {
     val resetEmpty = Input(Bool())
     val placePiece = Input(UInt(5.W)) // Position
     val colorToPut = Input(Bool()) // 0 is black, one is white.
-    // if set to true we set an empty board.    
+    // if set to true we set an empty board.
     // used for PLAYMOVE:
     val from = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
     val to = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
     val isMoveValid = Output(Bool())
-     // used for viewboard:
+    // used for viewboard:
     // we also use FROM mentioned in PLAYBOARD.
     val colorAtTile = Output(
       UInt(3.W)
@@ -39,34 +39,34 @@ class ChiselCheckers() extends Module {
   }))
 
   io.isMoveValid := false.B
-  io.colorAtTile:=0.U//just for init, idk if good yet 
+  io.colorAtTile := 0.U // just for init, idk if good yet
 
-  switch(io.mode){
-    is("b00".U) { // buildboard. 
-      when(io.reset) { // we are making a new piece, which may be either empty or standard position. 
-        when(!io.resetEmpty){
+  switch(io.mode) {
+    is("b00".U) { // buildboard.
+      when(io.reset) { // we are making a new piece, which may be either empty or standard position.
+        when(!io.resetEmpty) {
           board := VecInit(Seq.tabulate(board_size) { i =>
             if (i < 12) sBlack
             else if (i >= 20) sWhite
             else sEmpty
           })
-        }.otherwise{
+        }.otherwise {
           board := VecInit(Seq.tabulate(board_size) { i =>
-          sEmpty
+            sEmpty
           })
         }
-      }     .otherwise{// We are trying to place a piece. 
-        when(io.colorToPut){
-          board(io.placePiece):=sWhite
-        }.otherwise{
-          board(io.placePiece):=sBlack
+      }.otherwise { // We are trying to place a piece.
+        when(io.colorToPut) {
+          board(io.placePiece) := sWhite
+        }.otherwise {
+          board(io.placePiece) := sBlack
         }
-      
+
       }
 
-  }
-  
-  is("b01".U) { // PLAYBOARD
+    }
+
+    is("b01".U) { // PLAYBOARD
 
       val from = io.from
       val to = io.to
@@ -91,7 +91,7 @@ class ChiselCheckers() extends Module {
 
         }
         is(sBlack) {
-          when(io.to === io.from + 4.U || io.to === io.from + 3.U) { // 90% sure this is wrong, havent fixed. 
+          when(io.to === io.from + 4.U || io.to === io.from + 3.U) { // 90% sure this is wrong, havent fixed.
             io.isMoveValid := true.B
           }.otherwise {
             io.isMoveValid := false.B
@@ -109,15 +109,13 @@ class ChiselCheckers() extends Module {
         }
       }
 
+    }
+    is("b10".U) { // viewboard.
+
+      io.colorAtTile := board(io.from)
+
+    }
   }
-  is("b10".U) { // viewboard. 
-
-    io.colorAtTile:=board(io.from)
-
-
-
-  }
-}
 
 }
 
