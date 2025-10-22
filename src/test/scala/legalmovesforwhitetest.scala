@@ -18,6 +18,8 @@ class legalmovesforwhitetest extends AnyFlatSpec with ChiselScalatestTester {
         for(i<-0 to 32*4-1){//-1 because scala's range is shit. 
             dut.io.whereWeCanMove(i).expect(false.B, s" $i should be 0, because the board is empty and thus no moves are possible!")
         } 
+        dut.io.forcedMoves.expect(false.B,s"there shouldnt be a forced move")
+
     }
   }
 
@@ -35,11 +37,12 @@ class legalmovesforwhitetest extends AnyFlatSpec with ChiselScalatestTester {
         dut.clock.step()
         for(i<-0 to 32*4-1){//-1 because scala's range is shit. 
             dut.io.whereWeCanMove(i).expect(false.B, s" $i should be 0, because the board is empty and thus no moves are possible!")
-        } 
+        }
+        dut.io.forcedMoves.expect(false.B,s"there shouldnt be a forced move")
     }
   }
 
-  it should "place a piece in the middle of the board and see that it has the right jumps" in {
+  it should "place a piece in the middle of the board and see that it can move left and right" in {
     test(new LegalMovesForWhite()) { dut =>
         for(i<-0 to 31){
             if(i==14){
@@ -60,6 +63,7 @@ class legalmovesforwhitetest extends AnyFlatSpec with ChiselScalatestTester {
 
             }
         } 
+        dut.io.forcedMoves.expect(false.B,s"there shouldnt be a forced move")
     }
   }
 
@@ -86,6 +90,7 @@ class legalmovesforwhitetest extends AnyFlatSpec with ChiselScalatestTester {
 
             }
         } 
+        dut.io.forcedMoves.expect(true.B,s"the move should be forced")
     }
   }
 

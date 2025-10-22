@@ -11,24 +11,24 @@ WE DO NEED TO FIGURE OUT FORCED MOVES BUT THAT IS MORE OR LESS IT!
 
 class LegalMovesForWhite() extends Module {
 
-    // Index corresponding to 32 dark squares
+    //These are some filler functions I use. 
     private def row(i: Int) = i / 4
     private def col(i: Int): Int = {
     val r = row(i)
     val offset = if (r % 2 == 0) 1 else 0
     offset + 2 * (i % 4)
   }
-
-
     private def idx(row: Int, col: Int): Int = {
     if (row < 0 || row >= 8 || col < 0 || col >= 8) throw new IllegalArgumentException( s" $row  or $col out of range")
     if ((row + col) % 2 != 1) throw new IllegalArgumentException( s" $row , $col hit a white square")
     return row * 4 + col / 2
   }
+
+    
   val io = IO(new Bundle {
     val In = Input(Vec(32, UInt (3.W)))
 
-    val forcedMoves=Output(Bool())//THIS ONE ISN'T BEING SET AT ALL!
+    val forcedMoves=Output(Bool())
 
     val whereWeCanMoveFrom=Output(Vec(32,Bool()))
     //This one is if we can move from here. 
@@ -42,7 +42,7 @@ class LegalMovesForWhite() extends Module {
 
   })
 
-    io.forcedMoves:=false.B
+    //io.forcedMoves:=false.B
     io.whereWeCanMoveFrom := VecInit(Seq.tabulate(32) { i =>
             false.B
       })
@@ -61,7 +61,9 @@ class LegalMovesForWhite() extends Module {
     val col_curr=col(i)
 
     //The code to actually set forcedMoves: 
+    /* 
     val jumps= new Array[chisel3.Bool](2*32)
+
     var index:Int=0
     for(i<-0 to 31){
         if(i%4==1||i%4==3){
@@ -69,6 +71,10 @@ class LegalMovesForWhite() extends Module {
             index+=1
         }
     }
+     */
+    val canJumpArray = VecInit(io.whereWeCanMove.zipWithIndex.collect { case (elem, ind) if(ind % 4 == 1||ind%4==3) => elem })
+    io.forcedMoves:=canJumpArray.reduceTree((x,y)=>x||y)
+
 
     //can move up left.
     if(row_curr>=1 && col_curr>=1){
