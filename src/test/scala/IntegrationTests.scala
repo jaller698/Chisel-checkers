@@ -6,7 +6,7 @@ import CheckerRules._
 
 
 class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
-  
+
   behavior of "IntegrationTests"
 
   it should "initialize an empty board and check that all tiles are empty" in {
