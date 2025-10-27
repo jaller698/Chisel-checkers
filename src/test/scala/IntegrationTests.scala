@@ -29,7 +29,7 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "build custom board and validate moves on it, verify board hasnt changed at the end" in {
     test(new ChiselCheckers()) { dut =>
-      
+
     dut.io.mode.poke("b00".U)
     dut.io.reset.poke(true.B)
     dut.io.resetEmpty.poke(true.B)
@@ -86,27 +86,26 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "maintain board state when switching modes" in {
     test(new ChiselCheckers()) { dut =>
-      // build board
+      
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(true.B)
       dut.clock.step()
 
-      // place a white piece at position 20
       dut.io.reset.poke(false.B)
       dut.io.placePiece.poke(20.U)
       dut.io.colorToPut.poke(true.B) 
 
-      dut.io.mode.poke("b10".U) // switch to view mode
+      dut.io.mode.poke("b10".U)   
       dut.clock.step()
 
-      dut.io.mode.poke("b01".U) // switch to play mode
+      dut.io.mode.poke("b01".U)   
       dut.clock.step()
       
-      dut.io.mode.poke("b00".U) // switch to build mode
+      dut.io.mode.poke("b00".U)   
       dut.clock.step()
 
-      dut.io.mode.poke("b10".U) // switch to view mode
+      dut.io.mode.poke("b10".U) 
 
       dut.io.from.poke(20.U)
       dut.clock.step()
