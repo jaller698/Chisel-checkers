@@ -11,7 +11,6 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "initialize an empty board and check that all tiles are empty" in {
     test(new ChiselCheckers()) { dut =>
-
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(true.B)
@@ -28,7 +27,6 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "build custom board and validate moves on it, verify board hasnt changed at the end" in {
     test(new ChiselCheckers()) { dut =>
-
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(true.B)
@@ -91,7 +89,6 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "maintain board state when switching modes" in {
     test(new ChiselCheckers()) { dut =>
-
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(true.B)
@@ -122,7 +119,6 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "reset board and correctly reinitialize a normal board" in {
     test(new ChiselCheckers()) { dut =>
-
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(true.B)
@@ -168,7 +164,6 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "handle multiple board resets with board reconfigurations in between" in {
     test(new ChiselCheckers()) { dut =>
-
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(true.B)
@@ -222,7 +217,4 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
       }
     }
   }
-
-  //will add more
-
 }
