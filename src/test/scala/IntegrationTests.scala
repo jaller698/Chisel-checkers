@@ -11,13 +11,12 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "initialize an empty board and check that all tiles are empty" in {
     test(new ChiselCheckers()) { dut =>
-      // sets up an empty board
+
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(true.B)
       dut.clock.step()
 
-      // checks that whole board is empty
       dut.io.mode.poke("b10".U)
       for (i <- 0 to 31) {
         dut.io.from.poke(i.U)
@@ -86,7 +85,7 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "maintain board state when switching modes" in {
     test(new ChiselCheckers()) { dut =>
-      
+
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(true.B)
@@ -117,7 +116,6 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
   it should "reset board and correctly reinitialize a normal board" in {
     test(new ChiselCheckers()) { dut =>
 
-      // build board 
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(true.B) 
@@ -172,7 +170,7 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.mode.poke("b10".U)
       dut.io.from.poke(20.U)
       dut.clock.step()
-      dut.io.colorAtTile.expect(1.U, "Piece at position 20 should be white")
+      dut.io.colorAtTile.expect(1.U, "Tile 20 should have white piece")
 
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
@@ -184,21 +182,27 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
       dut.clock.step()
       dut.io.colorAtTile.expect(0.U, "Piece at position 20 should be empty")
 
-      dut.io.mode.poke("b10".U)
-      dut.io.reset.poke(true.B)
-      dut.io.resetEmpty.poke(false.B)
-      dut.clock.step()
-
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(false.B)
       dut.clock.step()
 
       dut.io.mode.poke("b10".U)
-      dut.io.from.poke(10.U)
-      dut.clock.step()
-      dut.io.colorAtTile.expect(3.U, "Board is back to standard layout")
-      
+      for (i <- 0 to 11) {
+        dut.io.from.poke(i.U)
+        dut.clock.step()
+        dut.io.colorAtTile.expect(3.U, s"Tile $i should be black")
+      }
+      for (i <- 12 to 19) {
+        dut.io.from.poke(i.U)
+        dut.clock.step()
+        dut.io.colorAtTile.expect(0.U, s"Tile $i should be empty")
+      }
+      for (i <- 20 to 31) {
+        dut.io.from.poke(i.U)
+        dut.clock.step()
+        dut.io.colorAtTile.expect(1.U, s"Tile $i should be white")
+      }
     }
   }
 
