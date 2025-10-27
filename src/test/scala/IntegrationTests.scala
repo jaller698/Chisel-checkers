@@ -4,7 +4,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import CheckerRules._
 
-
 class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
 
   behavior of "IntegrationTests"
