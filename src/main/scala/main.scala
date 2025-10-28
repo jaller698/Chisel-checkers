@@ -75,6 +75,14 @@ class ChiselCheckers() extends Module {
 
       io.isMoveValid := moveValidator.io.isMoveValid
       io.ready := true.B // TODO: This needs to be fixed to have proper timing
+
+      when(io.isMoveValid) {
+        val mover = Module(new Mover())
+        mover.io.from := io.from
+        mover.io.to := io.to
+        mover.io.boardread := board
+        // board := mover.io.boardwrite
+      }
     }
     is("b10".U) { // viewboard.
 
@@ -95,8 +103,6 @@ class Mover extends Module {
     val boardwrite =
       Output(Vec(32, UInt(4.W))) // The boardstate we return after the move
   })
-
-  // Implement check for valid move.
 
   io.boardwrite := io.boardread
   io.boardwrite(io.to) := io.boardread(io.from)

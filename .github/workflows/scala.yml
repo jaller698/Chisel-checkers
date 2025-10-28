@@ -29,5 +29,5 @@ jobs:
         cache: 'sbt'
     - name: Install SBT
       uses: sbt/setup-sbt@v1
-    - name: Run tests
-      run: sbt test
+    - name: Run non-interactive tests
+      run: sbt "testOnly * -- -l interactive"
