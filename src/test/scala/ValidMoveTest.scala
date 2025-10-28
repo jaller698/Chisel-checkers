@@ -119,26 +119,7 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
         21,
         22,
         23
-      ) // I have removed 24 from here, becuase it seemed to fail and I couldn't figure out why
-      /*
-         val mode=Input(UInt(2.W))
-    /*I have three modes:
-      BUILDBOARD (00)
-      PLAYMOVE   (01)
-      VIEWBOARD  (10)
-       */
-
-    //used for PLAYBOARD:
-    val from = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
-    val to = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
-    val isMoveValid = Output(Bool())
-
-    val reset = Input(Bool())
-    val resetEmpty=Input(Bool())
-    val placePiece=Input(UInt(5.W))//Position
-    val colorToPut=Input(Bool())//0 is black, one is white.
-
-       */
+      )
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(false.B)

@@ -1,13 +1,6 @@
 import chisel3._
 import chisel3.util._
 
-/*
-WE DONT ACTUALLY NEED THIS COMPONENT
-WE CAN JUST PUSH AND POP VALID MOVES.
-WE USE THIS COMPONENT MAYBE ONCE IN THE END.
-WE DO NEED TO FIGURE OUT FORCED MOVES BUT THAT IS MORE OR LESS IT!
- */
-
 class LegalMovesForWhite() extends Module {
 
   // These are some filler functions I use.
