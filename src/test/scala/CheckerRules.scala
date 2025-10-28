@@ -106,7 +106,10 @@ object CheckerRules {
   }
 
   // Check if any piece of given color has jumps available
-  def hasAvailableJumpsForColor(board: Vector[Piece], isWhiteTurn: Boolean): Boolean = {
+  def hasAvailableJumpsForColor(
+      board: Vector[Piece],
+      isWhiteTurn: Boolean
+  ): Boolean = {
     (0 until 32).exists { from =>
       val piece = board(from)
       piece != Empty && piece.isWhite == isWhiteTurn && hasAvailableJumps(
@@ -127,7 +130,12 @@ object CheckerRules {
   }
 
   // Complete move validation with turn checking and mandatory jumps
-  def isMoveValid(from: Int, to: Int, board: Vector[Piece], isWhiteTurn: Boolean): Boolean = {
+  def isMoveValid(
+      from: Int,
+      to: Int,
+      board: Vector[Piece],
+      isWhiteTurn: Boolean
+  ): Boolean = {
     if (from < 0 || from >= 32 || to < 0 || to >= 32) return false
     if (from == to) return false
     if (board(to) != Empty) return false
@@ -162,7 +170,11 @@ object CheckerRules {
   }
 
   // Apply a move and return new board state
-  def applyMove(from: Int, to: Int, board: Vector[Piece]): Option[Vector[Piece]] = {
+  def applyMove(
+      from: Int,
+      to: Int,
+      board: Vector[Piece]
+  ): Option[Vector[Piece]] = {
     val piece = board(from)
     if (piece == Empty) return None
 
