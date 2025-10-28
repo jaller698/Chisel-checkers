@@ -5,3 +5,13 @@ target
 .vscode
 ChiselCheckers.sv
 test_run_dir
+build
+
+# Exclude Vivado build artifacts (synthesis)
+vivado_build/*
+vivado.log
+vivado.jou
+
+# We do want to track synthesis report
+!*_synth_utilization.txt
+
