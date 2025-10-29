@@ -56,11 +56,15 @@ class BoardMoveValidatorBlack extends Module {
           io.board(io.from) === "b011".U &&
           io.board(io.to) === "b000".U &&
           (
-            (io.board(io.from) % 8.U < 4.U) &&
-              (io.board(io.from + 5.U) === "b001".U) // checks that it is white.
+            (
+              (io.from % 8.U < 3.U) &&
+                (io.board(io.from + 5.U) === "b001".U)
+            ) // checks that it is white.
               ||
-              (io.board(io.from % 8.U) >= 4.U) &&
-              (io.board(io.from + 4.U) === "b001".U)
+                (
+                  (io.from % 8.U >= 4.U) &&
+                    (io.board(io.from + 4.U) === "b001".U)
+                )
           )
       ) {
 
@@ -70,20 +74,16 @@ class BoardMoveValidatorBlack extends Module {
         io.newboard(io.from) := "b000".U
         io.newboard(io.to) := "b011".U
 
-        // sets the one between to be empty now.
-        when(io.board(io.from) % 8.U < 4.U) {
-          io.newboard(io.from +% 5.U) === "b000".U
+        // sets the one between to be empty.
+        when(io.from % 8.U < 4.U) {
+          io.newboard(io.from +% 5.U) := "b000".U
         }.otherwise(
-          io.newboard(io.from +% 4.U) === "b000".U
+          io.newboard(io.from +% 4.U) := "b000".U
         )
+
         io.ValidMove := true.B
 
-        // We need to set the rest of the board.
-        // Scala has some functional ways of doing this cleanly.
-        // A vector tabulate, I imagine.
-
       }.otherwise {
-
         // In this case, we have found out that the move was invalid.
         io.ValidMove := false.B
         for (i <- 0 until 31) {
@@ -104,13 +104,20 @@ class BoardMoveValidatorBlack extends Module {
           io.board(io.from) === "b011".U &&
           io.board(io.to) === "b000".U &&
           (
-            (io.board(io.from) % 8.U < 4.U) &&
-              (io.board(io.from + 4.U) === "b001".U) // checks that it is white.
+            (
+              (io.from % 8.U < 4.U) &&
+                (io.board(
+                  io.from + 4.U
+                ) === "b001".U) // checks that it is white.
+            )
               ||
-              (io.board(io.from % 8.U) > 4.U) &&
-              (io.board(io.from + 3.U) === "b001".U)
+                (
+                  (io.from % 8.U > 4.U) &&
+                    (io.board(io.from + 3.U) === "b001".U)
+                )
           )
       ) {
+
         for (i <- 0 to 31) {
           io.newboard(i) := io.board(i)
         }
@@ -119,11 +126,12 @@ class BoardMoveValidatorBlack extends Module {
 
         // sets the one between to be empty now.
 
-        when(io.board(io.from) % 8.U < 4.U) {
-          io.newboard(io.from +% 4.U) === "b000".U
+        when(io.from % 8.U < 4.U) {
+          io.newboard(io.from +% 4.U) := "b000".U
         }.otherwise(
-          io.newboard(io.from +% 3.U) === "b000".U
+          io.newboard(io.from +% 3.U) := "b000".U
         )
+        io.ValidMove := true.B
 
         // We need to set the rest of the board.
         // Scala has some functional ways of doing this cleanly.
@@ -194,7 +202,7 @@ class BoardMoveValidatorBlack extends Module {
 
       // half of the rows use 5 to go right.
       when(
-        io.from % 8.U < 4.U &&
+        io.from % 8.U < 3.U &&
           io.board(io.from) === "b011".U &&
           io.board(io.to) === "b000".U &&
           necessaryforcedmoves.io.out === false.B
