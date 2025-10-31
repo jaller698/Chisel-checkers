@@ -7,12 +7,11 @@ import chisel3.util._
 //This one will only validate black moves because only black plays.
 //For now, it is only correct for black pawns.
 //TODO: Implement functionality for black kings too.
-//TODO: extend it to white as well. 
+//TODO: extend it to white as well.
 //  When adding white functionality
-//    we need to add an input that is the color moving and 
+//    we need to add an input that is the color moving and
 //    and building a whiteforcedmoves component.
 //      This should be fairly easy by copying code from blackforcedmoves
-
 
 class BoardMoveValidatorBlack extends Module {
   val io = IO(new Bundle {
@@ -35,8 +34,6 @@ class BoardMoveValidatorBlack extends Module {
   // second to check is that to is empty.
   // Then we need to check if they are far from eachother or not.
   // If they are far from each other, then we will add a check if there is something between
-
-  
 
   val difference =
     io.to - io.from // I am just making it for black pawns for now.
@@ -95,8 +92,7 @@ class BoardMoveValidatorBlack extends Module {
                 )
           )
       ) {
-        
-        
+
         // sets the one between to be empty.
 
         when(io.from % 8.U < 4.U) {
@@ -120,7 +116,6 @@ class BoardMoveValidatorBlack extends Module {
         io.ValidMove := true.B
 
       }
-     
 
     }
     is(4.U) {
@@ -146,11 +141,10 @@ class BoardMoveValidatorBlack extends Module {
 
       }
 
-
     }
   }
 
-  when(io.ValidMove){
+  when(io.ValidMove) {
     io.newboard(io.from) := "b000".U
     io.newboard(io.to) := io.board(io.from)
 
