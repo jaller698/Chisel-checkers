@@ -67,10 +67,7 @@ class BoardMoveValidatorBlack extends Module {
                 )
           )
       ) {
-
-        for (i <- 0 to 31) {
-          io.newboard(i) := io.board(i)
-        }
+  
         io.newboard(io.from) := "b000".U
         io.newboard(io.to) := "b011".U
 
@@ -83,19 +80,7 @@ class BoardMoveValidatorBlack extends Module {
 
         io.ValidMove := true.B
 
-      }.otherwise {
-        // In this case, we have found out that the move was invalid.
-        io.ValidMove := false.B
-        for (i <- 0 until 31) {
-          io.newboard(i) := io.board(i)
-        }
       }
-
-      // if from%4==3 this isn't valid.
-      // from has to be black.
-      // the place in the middle has to be white
-      // the place being jumped to has to be empty.
-      // if we are on a row with
 
     }
     is(7.U) {
@@ -117,10 +102,8 @@ class BoardMoveValidatorBlack extends Module {
                 )
           )
       ) {
-
-        for (i <- 0 to 31) {
-          io.newboard(i) := io.board(i)
-        }
+        
+   
         io.newboard(io.from) := "b000".U
         io.newboard(io.to) := "b011".U
 
@@ -133,17 +116,6 @@ class BoardMoveValidatorBlack extends Module {
         )
         io.ValidMove := true.B
 
-        // We need to set the rest of the board.
-        // Scala has some functional ways of doing this cleanly.
-        // A vector tabulate, I imagine.
-
-      }.otherwise {
-
-        // In this case, we have found out that the move was invalid.
-        io.ValidMove := false.B
-        for (i <- 0 until 31) {
-          io.newboard(i) := io.board(i)
-        }
       }
 
       // if from%4==0, this isn't valid.
@@ -157,19 +129,11 @@ class BoardMoveValidatorBlack extends Module {
       ) {
         io.ValidMove := true.B
 
-        for (i <- 0 to 31) {
-          io.newboard(i) := io.board(i)
-        }
         io.newboard(io.from) := "b000".U
         io.newboard(io.to) := "b011".U
 
-      }.otherwise {
-        io.ValidMove := false.B
-        for (i <- 0 until 31) {
-          io.newboard(i) := io.board(i)
-        }
       }
-      // half the rows use 3 to go down left.
+     
 
     }
     is(4.U) {
@@ -179,23 +143,13 @@ class BoardMoveValidatorBlack extends Module {
           necessaryforcedmoves.io.out === false.B
       ) {
         io.ValidMove := true.B
-
-        for (i <- 0 to 31) {
-          io.newboard(i) := io.board(i)
-        }
+        
         io.newboard(io.from) := "b000".U
         io.newboard(io.to) := "b011".U
 
-      }.otherwise {
-        io.ValidMove := false.B
-        for (i <- 0 until 31) {
-          io.newboard(i) := io.board(i)
-        }
       }
-      // Here we just have to check that it's valid.
 
-      // half the rows use 4 to go left.
-      // The other use it to go right.
+
 
     }
     is(5.U) {
@@ -208,23 +162,24 @@ class BoardMoveValidatorBlack extends Module {
           necessaryforcedmoves.io.out === false.B
       ) {
         io.ValidMove := true.B
-        for (i <- 0 to 31) {
-          io.newboard(i) := io.board(i)
-        }
+        /* 
         io.newboard(io.from) := "b000".U
         io.newboard(io.to) := "b011".U
+         */
         // The above felt like a double assignment but ChatGPT said it is correct.
 
         // idk yet.
 
-      }.otherwise {
-        io.ValidMove := false.B
-        for (i <- 0 to 31) {
-          io.newboard(i) := io.board(i)
-        }
       }
 
+
     }
+
+  }
+
+  when(io.ValidMove){
+    io.newboard(io.from) := "b000".U
+    io.newboard(io.to) := io.board(io.from)
 
   }
 

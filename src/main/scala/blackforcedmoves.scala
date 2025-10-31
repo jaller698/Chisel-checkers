@@ -31,9 +31,7 @@ class BlackForcedMoves() extends Module {
     val row_curr = row(i)
     val col_curr = col(i)
 
-    if (i == 22) {
-      println(s"at 22, row is $row_curr and col is $col_curr")
-    }
+   
 
     // can jump down left
     if (row_curr <= 7 - 2 && col_curr >= 2) {
@@ -52,9 +50,7 @@ class BlackForcedMoves() extends Module {
     if (row_curr <= 7 - 2 && col_curr <= 7 - 2) {
       val to_jump_over = idx(row_curr + 1, col_curr + 1)
       val to_jump_to = idx(row_curr + 2, col_curr + 2)
-      if (i == 22) {
-        println(s"we may jump down over $to_jump_over to get to $to_jump_to")
-      }
+     
       forcedmoves(i * 2 + 1) := (
         io.In(i) === "b011".U &&
           io.In(to_jump_over) === "b001".U &&
