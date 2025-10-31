@@ -7,8 +7,12 @@ import chisel3.util._
 //This one will only validate black moves because only black plays.
 //For now, it is only correct for black pawns.
 //TODO: Implement functionality for black kings too.
+//TODO: extend it to white as well. 
+//  When adding white functionality
+//    we need to add an input that is the color moving and 
+//    and building a whiteforcedmoves component.
+//      This should be fairly easy by copying code from blackforcedmoves
 
-//One thing that this one doesn't do at all is make sure that they are allowed to make that movement.
 
 class BoardMoveValidatorBlack extends Module {
   val io = IO(new Bundle {
@@ -32,15 +36,7 @@ class BoardMoveValidatorBlack extends Module {
   // Then we need to check if they are far from eachother or not.
   // If they are far from each other, then we will add a check if there is something between
 
-  /*
-    SEVERAL THINGS TO FIGURE OUT:
-        how do I set the output to be both the old board and the modified tiles.
-            I think this is just a for loop with some slight modifications.
-            Still thinking about it.
-        how do I find out if there are forced moves.
-        This, I dont know about yet.
-
-   */
+  
 
   val difference =
     io.to - io.from // I am just making it for black pawns for now.
@@ -67,9 +63,6 @@ class BoardMoveValidatorBlack extends Module {
                 )
           )
       ) {
-  
-        io.newboard(io.from) := "b000".U
-        io.newboard(io.to) := "b011".U
 
         // sets the one between to be empty.
         when(io.from % 8.U < 4.U) {
@@ -103,11 +96,8 @@ class BoardMoveValidatorBlack extends Module {
           )
       ) {
         
-   
-        io.newboard(io.from) := "b000".U
-        io.newboard(io.to) := "b011".U
-
-        // sets the one between to be empty now.
+        
+        // sets the one between to be empty.
 
         when(io.from % 8.U < 4.U) {
           io.newboard(io.from +% 4.U) := "b000".U
@@ -129,9 +119,6 @@ class BoardMoveValidatorBlack extends Module {
       ) {
         io.ValidMove := true.B
 
-        io.newboard(io.from) := "b000".U
-        io.newboard(io.to) := "b011".U
-
       }
      
 
@@ -143,14 +130,8 @@ class BoardMoveValidatorBlack extends Module {
           necessaryforcedmoves.io.out === false.B
       ) {
         io.ValidMove := true.B
-        
-        io.newboard(io.from) := "b000".U
-        io.newboard(io.to) := "b011".U
 
       }
-
-
-
     }
     is(5.U) {
 
@@ -162,19 +143,11 @@ class BoardMoveValidatorBlack extends Module {
           necessaryforcedmoves.io.out === false.B
       ) {
         io.ValidMove := true.B
-        /* 
-        io.newboard(io.from) := "b000".U
-        io.newboard(io.to) := "b011".U
-         */
-        // The above felt like a double assignment but ChatGPT said it is correct.
-
-        // idk yet.
 
       }
 
 
     }
-
   }
 
   when(io.ValidMove){
