@@ -44,7 +44,7 @@ class BlackForcedMoves() extends Module {
       )
 
     }
-    // can jump up over up right:
+    // can jump down right:
     if (row_curr <= 7 - 2 && col_curr <= 7 - 2) {
       val to_jump_over = idx(row_curr + 1, col_curr + 1)
       val to_jump_to = idx(row_curr + 2, col_curr + 2)
