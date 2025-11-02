@@ -3,44 +3,55 @@ import chisel3.util._
 import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.Tag
+import chiseltest.WriteVcdAnnotation
 object Interactive extends Tag("interactive")
 
-/** Interactive-ish test:
-  *   - Initializes the board (mode = 0)
-  *   - Prints the board content (tiles 0..31)
-  *   - Then waits for a line of keyboard input before finishing
-  *
-  * Note: Blocking on stdin in tests is only suitable when you run the test
-  * interactively (e.g. `sbt "testOnly example.PlayerIOTest"`). CI or
-  * non-interactive sbt/test runners will hang.
-  */
 class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
   def printBoard(c: ChiselCheckers): Unit = {
-    println("-----------------------------")
+    val board = Array.fill(8, 8)(' ')
     for (i <- 0 until 32) {
       c.io.from.poke(i.U)
-      c.clock.step(1) // step to ensure any sequential logic updates
+      c.clock.step(1)
       val colorAtTile = c.io.colorAtTile.peek().litValue.toInt
-      val displayChar = colorAtTile.toInt match {
-        case 0 => " " // empty
-        case 1 => "w" // white
-        case 3 => "b" // black
-        case _ => "?" // unknown
+
+      val displayChar: Char = colorAtTile match {
+        case 0 => '·' // empty dark square (use a visible dot)
+        case 1 => 'w' // white piece
+        case 3 => 'b' // black piece
+        case 2 => 'W' // example: white king (if used)
+        case 4 => 'B' // example: black king (if used)
+        case _ => '?' // unknown encoding
       }
-      println(s"Tile $i color: $displayChar")
 
-      // Print tile with separators
-      // in a pattern that resembles a checkers board, with x denoting whit
+      val row = i / 4
+      val posInRow = i % 4
+      val col = if (row % 2 == 0) 1 + 2 * posInRow else 0 + 2 * posInRow
 
-      // End of row
-      // if (i % 4 == 3) {
-      //   println("\n-----------------------------")
-      // }
+      board(row)(col) = displayChar
     }
+
+    // Print the board as an ASCII 8x8 grid with coordinates and separators
+    println("    0 1 2 3 4 5 6 7")
+    println("   -----------------")
+    for (r <- 0 until 8) {
+      val sb = new StringBuilder
+      sb.append(s"$r | ")
+      for (c <- 0 until 8) {
+        // leave light squares as a space for readability
+        val ch = if ((r + c) % 2 == 1) board(r)(c) else ' '
+        sb.append(ch)
+        sb.append(' ')
+      }
+      sb.append("|")
+      println(sb.toString())
+    }
+    println("   -----------------")
   }
 
-  "ChiselCheckers" should "initialize board, print it, then wait for keyboard input" taggedAs Interactive in {
-    test(new ChiselCheckers()) { c =>
+  "ChiselCheckers" should "be playable" taggedAs Interactive in {
+    test(new ChiselCheckers()).withAnnotations(
+      Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)
+    ) { c =>
       // Apply reset for one cycle
       c.reset.poke(true.B)
       c.clock.step(1)
@@ -62,11 +73,12 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
 
       while (true) {
         println(
-          "What do you want to do? (type 'exit' to finish test), otherwise press enter to continue"
+          "What do you want to do? (type 'q' to finish test), otherwise press enter to continue"
         )
         val input = scala.io.StdIn.readLine()
-        if (input == "exit") {
-          println("Exiting test.")
+        if (input == "q") {
+          // skip further processing and exit
+          cancel("Thank you for playing!")
         } else {
           println("Please enter the from position (0-31):")
           val fromInput = scala.io.StdIn.readLine()
@@ -100,10 +112,7 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
           printBoard(c)
         }
 
-        // send a clock cycle to avoid busy looping
         c.clock.step(1)
-
-        // send in
       }
     }
   }
