@@ -51,105 +51,115 @@ class BoardMoveValidatorBlack extends Module {
   for (i <- 0 to 31) {
     io.newboard(i) := io.board(i)
   }
-  switch(difference) {
-    is(9.S) { // jumping right. Could either be 4 or 5 to jump the first one.
-      when(
-        io.from % 4.U =/= 3.U && // This is because %4==3 can't do right double jumps.
-          io.board(io.from) === "b011".U &&
-          io.board(io.to) === "b000".U &&
-          (
-            (
-              (io.from % 8.U < 3.U) &&
-                (io.board(io.from + 5.U) === "b001".U)
-            ) // checks that it is white.
-              ||
-                (
-                  (io.from % 8.U >= 4.U) &&
-                    (io.board(io.from + 4.U) === "b001".U)
-                )
-          )
-      ) {
 
-        // sets the one between to be empty.
-        when(io.from % 8.U < 4.U) {
-          io.newboard(io.from +% 5.U) := "b000".U
-        }.otherwise(
-          io.newboard(io.from +% 4.U) := "b000".U
-        )
 
-        io.ValidMove := true.B
+  if (io.colorMoving) {
+    switch(difference) {
 
-      }
 
     }
-    is(7.S) {
-      when(
-        io.from % 4.U =/= 0.U && // This is because %4==0 can't do left double jumps. double jumps.
-          io.board(io.from) === "b011".U &&
-          io.board(io.to) === "b000".U &&
-          (
+
+  }.otherwise {
+    switch(difference) {
+      is(9.S) { // jumping right. Could either be 4 or 5 to jump the first one.
+        when(
+          io.from % 4.U =/= 3.U && // This is because %4==3 can't do right double jumps.
+            io.board(io.from) === "b011".U &&
+            io.board(io.to) === "b000".U &&
             (
-              (io.from % 8.U < 4.U) &&
-                (io.board(
-                  io.from + 4.U
-                ) === "b001".U) // checks that it is white.
+              (
+                (io.from % 8.U < 3.U) &&
+                  (io.board(io.from + 5.U) === "b001".U)
+              ) // checks that it is white.
+                ||
+                  (
+                    (io.from % 8.U >= 4.U) &&
+                      (io.board(io.from + 4.U) === "b001".U)
+                  )
             )
-              ||
-                (
-                  (io.from % 8.U > 4.U) &&
-                    (io.board(io.from + 3.U) === "b001".U)
-                )
+        ) {
+
+          // sets the one between to be empty.
+          when(io.from % 8.U < 4.U) {
+            io.newboard(io.from +% 5.U) := "b000".U
+          }.otherwise(
+            io.newboard(io.from +% 4.U) := "b000".U
           )
-      ) {
 
-        // sets the one between to be empty.
+          io.ValidMove := true.B
 
-        when(io.from % 8.U < 4.U) {
-          io.newboard(io.from +% 4.U) := "b000".U
-        }.otherwise(
-          io.newboard(io.from +% 3.U) := "b000".U
-        )
-        io.ValidMove := true.B
+        }
 
       }
+      is(7.S) {
+        when(
+          io.from % 4.U =/= 0.U && // This is because %4==0 can't do left double jumps. double jumps.
+            io.board(io.from) === "b011".U &&
+            io.board(io.to) === "b000".U &&
+            (
+              (
+                (io.from % 8.U < 4.U) &&
+                  (io.board(
+                    io.from + 4.U
+                  ) === "b001".U) // checks that it is white.
+              )
+                ||
+                  (
+                    (io.from % 8.U > 4.U) &&
+                      (io.board(io.from + 3.U) === "b001".U)
+                  )
+            )
+        ) {
 
-      // if from%4==0, this isn't valid.
-    }
-    is(3.S) {
-      when(
-        io.from % 8.U > 4.U &&
+          // sets the one between to be empty.
+
+          when(io.from % 8.U < 4.U) {
+            io.newboard(io.from +% 4.U) := "b000".U
+          }.otherwise(
+            io.newboard(io.from +% 3.U) := "b000".U
+          )
+          io.ValidMove := true.B
+
+        }
+
+        // if from%4==0, this isn't valid.
+      }
+      is(3.S) {
+        when(
+          io.from % 8.U > 4.U &&
+            io.board(io.from) === "b011".U &&
+            io.board(io.to) === "b000".U &&
+            necessaryforcedmoves.io.out === false.B
+        ) {
+          io.ValidMove := true.B
+
+        }
+
+      }
+      is(4.S) {
+        when(
           io.board(io.from) === "b011".U &&
-          io.board(io.to) === "b000".U &&
-          necessaryforcedmoves.io.out === false.B
-      ) {
-        io.ValidMove := true.B
+            io.board(io.to) === "b000".U &&
+            necessaryforcedmoves.io.out === false.B
+        ) {
+          io.ValidMove := true.B
+
+        }
+      }
+      is(5.S) {
+
+        // half of the rows use 5 to go right.
+        when(
+          io.from % 8.U < 3.U &&
+            io.board(io.from) === "b011".U &&
+            io.board(io.to) === "b000".U &&
+            necessaryforcedmoves.io.out === false.B
+        ) {
+          io.ValidMove := true.B
+
+        }
 
       }
-
-    }
-    is(4.S) {
-      when(
-        io.board(io.from) === "b011".U &&
-          io.board(io.to) === "b000".U &&
-          necessaryforcedmoves.io.out === false.B
-      ) {
-        io.ValidMove := true.B
-
-      }
-    }
-    is(5.S) {
-
-      // half of the rows use 5 to go right.
-      when(
-        io.from % 8.U < 3.U &&
-          io.board(io.from) === "b011".U &&
-          io.board(io.to) === "b000".U &&
-          necessaryforcedmoves.io.out === false.B
-      ) {
-        io.ValidMove := true.B
-
-      }
-
     }
   }
 
@@ -158,5 +168,4 @@ class BoardMoveValidatorBlack extends Module {
     io.newboard(io.to) := io.board(io.from)
 
   }
-
 }
