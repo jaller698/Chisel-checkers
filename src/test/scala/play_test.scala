@@ -4,9 +4,26 @@ import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.Tag
 import chiseltest.WriteVcdAnnotation
+import scala.concurrent._
+import scala.concurrent.duration._
+import ExecutionContext.global
 object Interactive extends Tag("interactive")
 
 class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
+  implicit val ec: scala.concurrent.ExecutionContext =
+    scala.concurrent.ExecutionContext.global
+
+  def readLineWithTimeout(timeout: FiniteDuration): Option[String] = {
+    val f = Future { scala.io.StdIn.readLine() } // blocking inside the future
+    try {
+      val s = Await.result(f, timeout)
+      Some(s.trim.toLowerCase)
+    } catch {
+      case _: Throwable =>
+        None
+    }
+  }
+
   def printBoard(c: ChiselCheckers): Unit = {
     val board = Array.fill(8, 8)(' ')
     for (i <- 0 until 32) {
@@ -75,7 +92,8 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
         println(
           "What do you want to do? (type 'q' to finish test), otherwise press enter to continue"
         )
-        val input = scala.io.StdIn.readLine()
+        // Read user input with a time out to not block indefinitely
+        val input = readLineWithTimeout(15.seconds).getOrElse("q")
         if (input == "q") {
           // skip further processing and exit
           cancel("Thank you for playing!")
