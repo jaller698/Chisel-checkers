@@ -20,30 +20,39 @@ class BoardMoveValidatorBlack extends Module {
 
     val from = Input(UInt(5.W))
     val to = Input(UInt(5.W))
+    val colorMoving = Input(Bool()) // 0 is black, 1 is white
 
     val newboard = Output(Vec(32, UInt(3.W)))
 
     val ValidMove = Output(Bool())
   })
-  val necessaryforcedmoves = Module(new BlackForcedMoves())
-  for (i <- 0 to 31) {
-    necessaryforcedmoves.io.In(i) := io.board(i)
-  }
 
+  val blackforcedmoves = Module(new BlackForcedMoves())
+  val whiteforcedmoves = Module(new WhiteForcedMoves())
+  if (io.colorMoving) {
+    for (i <- 0 to 31) {
+      whiteforcedmoves.io.In(i) := io.board(i)  
+    }
+  }.otherwise {
+    for (i <- 0 to 31) {
+      blackforcedmoves.io.In(i) := io.board(i)
+    }
+  }
+      
   // First to check is that from is black and whether it is a black king or a black pawn.
   // second to check is that to is empty.
   // Then we need to check if they are far from eachother or not.
   // If they are far from each other, then we will add a check if there is something between
 
   val difference =
-    io.to - io.from // I am just making it for black pawns for now.
+    io.to.asSInt - io.from.asSInt // This is the difference between the from and to positions.
 
   io.ValidMove := false.B
   for (i <- 0 to 31) {
     io.newboard(i) := io.board(i)
   }
   switch(difference) {
-    is(9.U) { // jumping right. Could either be 4 or 5 to jump the first one.
+    is(9.S) { // jumping right. Could either be 4 or 5 to jump the first one.
       when(
         io.from % 4.U =/= 3.U && // This is because %4==3 can't do right double jumps.
           io.board(io.from) === "b011".U &&
@@ -73,7 +82,7 @@ class BoardMoveValidatorBlack extends Module {
       }
 
     }
-    is(7.U) {
+    is(7.S) {
       when(
         io.from % 4.U =/= 0.U && // This is because %4==0 can't do left double jumps. double jumps.
           io.board(io.from) === "b011".U &&
@@ -106,7 +115,7 @@ class BoardMoveValidatorBlack extends Module {
 
       // if from%4==0, this isn't valid.
     }
-    is(3.U) {
+    is(3.S) {
       when(
         io.from % 8.U > 4.U &&
           io.board(io.from) === "b011".U &&
@@ -118,7 +127,7 @@ class BoardMoveValidatorBlack extends Module {
       }
 
     }
-    is(4.U) {
+    is(4.S) {
       when(
         io.board(io.from) === "b011".U &&
           io.board(io.to) === "b000".U &&
@@ -128,7 +137,7 @@ class BoardMoveValidatorBlack extends Module {
 
       }
     }
-    is(5.U) {
+    is(5.S) {
 
       // half of the rows use 5 to go right.
       when(
