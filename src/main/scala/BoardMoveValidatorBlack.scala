@@ -55,7 +55,21 @@ class BoardMoveValidatorBlack extends Module {
 
   if (io.colorMoving) {
     switch(difference) {
+      is(-9.S){
+      
+      }
+      is(-7.S){
 
+      }
+      is(-5.S){
+
+      }
+      is(-4.S){
+
+      }
+      is(-3.S){
+        
+      }
 
     }
 
