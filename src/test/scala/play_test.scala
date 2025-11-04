@@ -50,7 +50,7 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
 
   "ChiselCheckers" should "be playable" taggedAs Interactive in {
     test(new ChiselCheckers()).withAnnotations(
-      Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)
+      Seq( /* VerilatorBackendAnnotation, */ WriteVcdAnnotation)
     ) { c =>
       // Apply reset for one cycle
       c.reset.poke(true.B)
