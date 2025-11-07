@@ -68,12 +68,18 @@ class ChiselCheckers() extends Module {
 
     is("b01".U) { // PLAYBOARD
 
-      val moveValidator = Module(new MoveValidator())
+      // Use the black move validator
+      val moveValidator = Module(new BoardMoveValidatorBlack())
+      moveValidator.io.board := board
       moveValidator.io.from := io.from
       moveValidator.io.to := io.to
-      moveValidator.io.piece := board(io.from)
 
-      io.isMoveValid := moveValidator.io.isMoveValid
+      io.isMoveValid := moveValidator.io.ValidMove
+
+      when(moveValidator.io.ValidMove) {
+        // update the register with the validator's new board
+        board := moveValidator.io.newboard
+      }
     }
     is("b10".U) { // viewboard.
 

@@ -111,14 +111,14 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
     }
   }
 
-  it should "pass movement test" in {
+  it should "pass movement test black" in {
     test(new ChiselCheckers()) { dut =>
       val b = initialBoard
       val fromSet = Seq(
-        20,
-        21,
-        22,
-        23
+        8,
+        9,
+        10,
+        11
       )
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
@@ -128,7 +128,10 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
       for (from <- fromSet; to <- 0 until 32) {
         dut.io.from.poke(from.U)
         dut.io.to.poke(to.U)
-        dut.clock.step()
+        // dut.clock.step()
+        // do not step here: isMoveValid is combinational and stepping would apply the move to the board
+        // which changes the board for subsequent iterations and invalidates comparisons to `b`
+        // if you want to apply moves, update `b` accordingly or reset the DUT per test case.
         val ref = isMoveValid(from, to, b)
         if (ref)
           dut.io.isMoveValid
