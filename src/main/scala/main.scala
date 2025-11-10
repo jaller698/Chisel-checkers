@@ -4,6 +4,12 @@ import chisel3.util._
 class ChiselCheckers() extends Module {
   val io = IO(new Bundle {
 
+    // Testing IO
+    val resetEmpty = Input(Bool())
+    val placePiece = Input(UInt(5.W)) // Position
+    val colorToPut = Input(Bool()) // 0 is black, one is white.
+    // End Testing IO
+
     val mode = Input(UInt(2.W))
     /* I have three modes:
       BUILDBOARD (00)
@@ -11,22 +17,15 @@ class ChiselCheckers() extends Module {
       VIEWBOARD  (10)
      */
 
-    // used for BUILDBOARD
     val reset = Input(Bool())
-    val resetEmpty = Input(Bool())
-    val placePiece = Input(UInt(5.W)) // Position
-    val colorToPut = Input(Bool()) // 0 is black, one is white.
-    // if set to true we set an empty board.
-    // used for PLAYMOVE:
     val from = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
     val to = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
     val isMoveValid = Output(Bool())
-    // used for viewboard:
-    // we also use FROM mentioned in PLAYBOARD.
-    val colorAtTile = Output(
-      UInt(3.W)
-    ) // sends out one from the enum below, which is one of sEmpty, sWhite, etc.
+    val ready = Output(Bool()) // player can read isMoveValid
 
+    val colorAtTile = Output(
+      UInt(3.W) // The color at a given tile, used for VIEWBOARD mode
+    )
   })
 
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
@@ -40,6 +39,7 @@ class ChiselCheckers() extends Module {
 
   io.isMoveValid := false.B
   io.colorAtTile := 0.U // just for init, idk if good yet
+  io.ready := false.B
 
   switch(io.mode) {
     is("b00".U) { // buildboard.
@@ -74,6 +74,15 @@ class ChiselCheckers() extends Module {
       moveValidator.io.piece := board(io.from)
 
       io.isMoveValid := moveValidator.io.isMoveValid
+      io.ready := true.B // TODO: This needs to be fixed to have proper timing
+
+      when(io.isMoveValid) {
+        val mover = Module(new Mover())
+        mover.io.from := io.from
+        mover.io.to := io.to
+        mover.io.boardread := board
+        // board := mover.io.boardwrite
+      }
     }
     is("b10".U) { // viewboard.
 
@@ -94,8 +103,6 @@ class Mover extends Module {
     val boardwrite =
       Output(Vec(32, UInt(4.W))) // The boardstate we return after the move
   })
-
-  // Implement check for valid move.
 
   io.boardwrite := io.boardread
   io.boardwrite(io.to) := io.boardread(io.from)
