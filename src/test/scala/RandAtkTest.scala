@@ -24,6 +24,8 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
         if (i == 83) true.B
         else false.B
       }
+      dut.io.AtkPresent.poke(true.B)
+
       for (i <- 0 to 31) {
         dut.io.board(i).poke(testVectors(i))
       }
