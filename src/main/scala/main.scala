@@ -78,8 +78,17 @@ class ChiselCheckers() extends Module {
 
       when(moveValidator.io.ValidMove) {
         // update the register with the validator's new board
-        board := moveValidator.io.newboard
+        val legalMovesForWhite = Module(new LegalMovesForWhite())
+        legalMovesForWhite.io.In := moveValidator.io.newboard
+
+        val randopponent = Module(new RandomAttack())
+        randopponent.io.board := moveValidator.io.newboard
+        randopponent.io.AtkPresent := legalMovesForWhite.io.forcedMoves
+        randopponent.io.whereWeCanMove := legalMovesForWhite.io.whereWeCanMove
+        board := randopponent.io.boardWrite
       }
+      io.ready := true.B
+
     }
     is("b10".U) { // viewboard.
 
