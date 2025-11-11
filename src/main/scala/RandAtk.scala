@@ -18,6 +18,7 @@ class RandomAttack extends Module {
   }
 
   val io = IO(new Bundle {
+    val AtkPresent = Input(Bool())
     val board = Input(Vec(32, UInt(3.W)))
     val whereWeCanMove = Input(Vec(4 * 32, Bool()))
     val boardWrite = Output(Vec(32, UInt(3.W)))
@@ -25,35 +26,64 @@ class RandomAttack extends Module {
 
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
   io.boardWrite := io.board
+  when(io.AtkPresent === true.B) {
+    for (k <- 1 to 127 by 2) {
 
-  for (k <- 1 to 127 by 2) {
+      when(io.whereWeCanMove(k) === true.B) {
+        val piece = (k / 4)
+        val row_curr = row(piece)
+        val col_curr = col(piece)
 
-    when(io.whereWeCanMove(k) === true.B) {
-      val piece = (k / 4)
-      val row_curr = row(piece)
-      val col_curr = col(piece)
-
-      if (k % 4 == 1) {
-        if (row_curr - 2 >= 0 && col_curr - 2 >= 0) {
-          val to_jump_over = idx(row_curr - 1, col_curr - 1)
-          val to_jump_to = idx(row_curr - 2, col_curr - 2)
-          io.boardWrite(piece) := sEmpty
-          io.boardWrite(to_jump_over) := sEmpty
-          io.boardWrite(to_jump_to) := sWhite
+        if (k % 4 == 1) {
+          if (row_curr - 2 >= 0 && col_curr - 2 >= 0) {
+            val to_jump_over = idx(row_curr - 1, col_curr - 1)
+            val to_jump_to = idx(row_curr - 2, col_curr - 2)
+            io.boardWrite(piece) := sEmpty
+            io.boardWrite(to_jump_over) := sEmpty
+            io.boardWrite(to_jump_to) := sWhite
+          }
         }
-      }
-      if (k % 4 == 3) {
-        if (row_curr - 2 >= 0 && col_curr + 2 <= 7) {
-          val to_jump_over = idx(row_curr - 1, col_curr + 1)
-          val to_jump_to = idx(row_curr - 2, col_curr + 2)
-          io.boardWrite(piece) := sEmpty
-          io.boardWrite(to_jump_over) := sEmpty
-          io.boardWrite(to_jump_to) := sWhite
+        if (k % 4 == 3) {
+          if (row_curr - 2 >= 0 && col_curr + 2 <= 7) {
+            val to_jump_over = idx(row_curr - 1, col_curr + 1)
+            val to_jump_to = idx(row_curr - 2, col_curr + 2)
+            io.boardWrite(piece) := sEmpty
+            io.boardWrite(to_jump_over) := sEmpty
+            io.boardWrite(to_jump_to) := sWhite
+          }
         }
+
       }
 
     }
+  }.otherwise{
+    for (k <- 0 to 127 by 2) {
 
+      when(io.whereWeCanMove(k) === true.B) {
+        val piece = (k / 4)
+        val row_curr = row(piece)
+        val col_curr = col(piece)
+
+        if (k % 4 == 0) {
+          if (row_curr - 2 >= 0 && col_curr - 2 >= 0) {
+            val to_jump_over = idx(row_curr - 1, col_curr - 1)
+            io.boardWrite(piece) := sEmpty
+            io.boardWrite(to_jump_over) := sEmpty
+
+          }
+        }
+        if (k % 4 == 2) {
+          if (row_curr - 2 >= 0 && col_curr + 2 <= 7) {
+            val to_jump_over = idx(row_curr - 1, col_curr + 1)
+            io.boardWrite(piece) := sEmpty
+            io.boardWrite(to_jump_over) := sEmpty
+
+          }
+        }
+
+      }
+
+    }
   }
 
 }
