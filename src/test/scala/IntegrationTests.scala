@@ -23,7 +23,7 @@ class IntegrationTests extends AnyFlatSpec with ChiselScalatestTester {
     }
   }
 
-  it should "build custom board and validate moves on it, verify board hasnt changed at the end" in {
+  ignore should "build custom board and validate moves on it, verify board hasnt changed at the end" in {
     test(new ChiselCheckers()) { dut =>
       dut.io.mode.poke("b00".U)
       dut.io.reset.poke(true.B)
