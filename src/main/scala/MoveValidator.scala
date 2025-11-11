@@ -146,8 +146,13 @@ class MoveValidator extends Module {
 
   when(io.ValidMove) {
     io.newboard(io.from) := "b000".U
-    io.newboard(io.to) := io.board(io.from)
 
+    // Check if black pawn reaches the king row (positions 28-31)
+    when(io.board(io.from) === "b011".U && io.to >= 28.U) {
+      io.newboard(io.to) := "b100".U // Promote to black king
+    }.otherwise {
+      io.newboard(io.to) := io.board(io.from) // Normal move
+    }
   }
 
 }
