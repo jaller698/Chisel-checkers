@@ -69,7 +69,7 @@ class ChiselCheckers() extends Module {
     is("b01".U) { // PLAYBOARD
 
       // Use the black move validator
-      val moveValidator = Module(new BoardMoveValidatorBlack())
+      val moveValidator = Module(new MoveValidator())
       moveValidator.io.board := board
       moveValidator.io.from := io.from
       moveValidator.io.to := io.to
@@ -87,23 +87,6 @@ class ChiselCheckers() extends Module {
 
     }
   }
-
-}
-
-//Note this class does not consider if the move is legal or not, that needs to be checked beforehand
-class Mover extends Module {
-  val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
-  val io = IO(new Bundle {
-    val boardread = Input(Vec(32, UInt(4.W))) // The current boardstate
-    val from = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
-    val to = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
-    val boardwrite =
-      Output(Vec(32, UInt(4.W))) // The boardstate we return after the move
-  })
-
-  io.boardwrite := io.boardread
-  io.boardwrite(io.to) := io.boardread(io.from)
-  io.boardwrite(io.from) := sEmpty
 
 }
 
