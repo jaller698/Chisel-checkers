@@ -9,7 +9,7 @@ class boardmovevalidatorblacktest
   behavior of "board move validator for black"
 
   it should "say that this simple move is a valid move and check that the board is correct after" in {
-    test(new BoardMoveValidatorBlack()) { dut =>
+    test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
         if (i == 22) {
           dut.io.board(i).poke("b011".U)
@@ -41,7 +41,7 @@ class boardmovevalidatorblacktest
   }
 
   it should "not be able to go up" in {
-    test(new BoardMoveValidatorBlack()) { dut =>
+    test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
         if (i == 17) {
           dut.io.board(i).poke("b011".U)
@@ -74,7 +74,7 @@ class boardmovevalidatorblacktest
   }
 
   it should "not be able to walk when it can jump" in {
-    test(new BoardMoveValidatorBlack()) { dut =>
+    test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
         if (i == 22) {
           dut.io.board(i).poke("b011".U)
@@ -121,7 +121,7 @@ class boardmovevalidatorblacktest
   }
 
   it should "invalidate the incorrect move and not change the board" in {
-    test(new BoardMoveValidatorBlack()) { dut =>
+    test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
         if (i == 22) {
           dut.io.board(i).poke("b011".U)
@@ -154,7 +154,7 @@ class boardmovevalidatorblacktest
   }
 
   it should "not be able to go from 11 to 16 and after be able to go to 15" in {
-    test(new BoardMoveValidatorBlack()) { dut =>
+    test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
         if (i == 11) {
           dut.io.board(i).poke("b011".U)
@@ -206,7 +206,7 @@ class boardmovevalidatorblacktest
   }
 
   it should "be able to capture a piece from 5 to 14" in {
-    test(new BoardMoveValidatorBlack()) { dut =>
+    test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
         if (i == 5) {
           dut.io.board(i).poke("b011".U)
@@ -247,7 +247,7 @@ class boardmovevalidatorblacktest
   }
 
   it should "be able to capture a piece from 11 to 18" in {
-    test(new BoardMoveValidatorBlack()) { dut =>
+    test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
         if (i == 11) {
           dut.io.board(i).poke("b011".U)
@@ -288,7 +288,7 @@ class boardmovevalidatorblacktest
   }
 
   it should "not be able to able to capture with black white black" in {
-    test(new BoardMoveValidatorBlack()) { dut =>
+    test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
         if (i == 0) {
           dut.io.board(i).poke("b011".U)
