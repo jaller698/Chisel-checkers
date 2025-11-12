@@ -26,6 +26,9 @@ class RandomAttack extends Module {
 
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
   io.boardWrite := io.board
+  val Lock = 1.U
+
+  // make a mutex lock.
   when(io.AtkPresent === true.B) {
     for (k <- 1 to 127 by 2) {
 
@@ -36,27 +39,35 @@ class RandomAttack extends Module {
 
         if (k % 4 == 1) {
           if (row_curr - 2 >= 0 && col_curr - 2 >= 0) {
-            val to_jump_over = idx(row_curr - 1, col_curr - 1)
-            val to_jump_to = idx(row_curr - 2, col_curr - 2)
-            io.boardWrite(piece) := sEmpty
-            io.boardWrite(to_jump_over) := sEmpty
-            io.boardWrite(to_jump_to) := sWhite
+            when(Lock === 1.U) {
+              Lock := 0.U
+              val to_jump_over = idx(row_curr - 1, col_curr - 1)
+              val to_jump_to = idx(row_curr - 2, col_curr - 2)
+              io.boardWrite(piece) := sEmpty
+              io.boardWrite(to_jump_over) := sEmpty
+              io.boardWrite(to_jump_to) := sWhite
+            }
+
           }
         }
         if (k % 4 == 3) {
           if (row_curr - 2 >= 0 && col_curr + 2 <= 7) {
-            val to_jump_over = idx(row_curr - 1, col_curr + 1)
-            val to_jump_to = idx(row_curr - 2, col_curr + 2)
-            io.boardWrite(piece) := sEmpty
-            io.boardWrite(to_jump_over) := sEmpty
-            io.boardWrite(to_jump_to) := sWhite
+            when(Lock === 1.U) {
+              Lock := 0.U
+              val to_jump_over = idx(row_curr - 1, col_curr + 1)
+              val to_jump_to = idx(row_curr - 2, col_curr + 2)
+              io.boardWrite(piece) := sEmpty
+              io.boardWrite(to_jump_over) := sEmpty
+              io.boardWrite(to_jump_to) := sWhite
+            }
           }
         }
+        // Break out of for loop
 
       }
 
     }
-  }.otherwise{
+  }.otherwise {
     for (k <- 0 to 127 by 2) {
 
       when(io.whereWeCanMove(k) === true.B) {
@@ -66,20 +77,25 @@ class RandomAttack extends Module {
 
         if (k % 4 == 0) {
           if (row_curr - 2 >= 0 && col_curr - 2 >= 0) {
-            val to_jump_over = idx(row_curr - 1, col_curr - 1)
-            io.boardWrite(piece) := sEmpty
-            io.boardWrite(to_jump_over) := sEmpty
-
+            when(Lock === 1.U) {
+              Lock := 0.U
+              val to_jump_over = idx(row_curr - 1, col_curr - 1)
+              io.boardWrite(piece) := sEmpty
+              io.boardWrite(to_jump_over) := sEmpty
+            }
           }
         }
         if (k % 4 == 2) {
           if (row_curr - 2 >= 0 && col_curr + 2 <= 7) {
-            val to_jump_over = idx(row_curr - 1, col_curr + 1)
-            io.boardWrite(piece) := sEmpty
-            io.boardWrite(to_jump_over) := sEmpty
-
+            when(Lock === 1.U) {
+              Lock := 0.U
+              val to_jump_over = idx(row_curr - 1, col_curr + 1)
+              io.boardWrite(piece) := sEmpty
+              io.boardWrite(to_jump_over) := sEmpty
+            }
           }
         }
+        // Break out of for loop
 
       }
 
