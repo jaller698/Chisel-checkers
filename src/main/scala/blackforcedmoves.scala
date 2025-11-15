@@ -22,7 +22,7 @@ class BlackForcedMoves() extends Module {
     val out = Output(Bool())
 
   })
-  val forcedmoves = VecInit(Seq.tabulate(32 * 2) { i =>
+  val forcedmoves = VecInit(Seq.tabulate(32 * 4) { i =>
     false.B
   })
 
@@ -36,22 +36,55 @@ class BlackForcedMoves() extends Module {
       val to_jump_over = idx(row_curr + 1, col_curr - 1)
       val to_jump_to = idx(row_curr + 2, col_curr - 2)
       forcedmoves(i * 2) := (
-        io.In(i) === "b011".U &&
-          io.In(to_jump_over) === "b001".U &&
+        (io.In(i) === "b011".U ||io.In(i)==="b100".U)//blackpiece confirm. 
+        &&
+        (io.In(to_jump_over) === "b001".U ||io.In(to_jump_over)==="b010".U)//whitepiece confirm
+        &&
           io.In(
             to_jump_to
-          ) === "b000".U // black normal piece. Can't jump over black king yet.
+          ) === "b000".U 
       )
 
     }
-    // can jump up over up right:
+    // can jump down right:
     if (row_curr <= 7 - 2 && col_curr <= 7 - 2) {
       val to_jump_over = idx(row_curr + 1, col_curr + 1)
       val to_jump_to = idx(row_curr + 2, col_curr + 2)
 
       forcedmoves(i * 2 + 1) := (
-        io.In(i) === "b011".U &&
-          io.In(to_jump_over) === "b001".U &&
+        (io.In(i) === "b011".U ||io.In(i)==="b100".U)//blackpiece confirm. 
+        &&
+        (io.In(to_jump_over) === "b001".U ||io.In(to_jump_over)==="b010".U)//whitepiece confirm. 
+        &&
+          io.In(to_jump_to) === "b000".U
+      )
+
+    }
+    //must jump up right NOT DONE FIX INDEXES AND REQUIRES KING
+    if (row_curr >=2 && col_curr <= 7 - 2) {
+      val to_jump_over = idx(row_curr - 1, col_curr + 1)
+      val to_jump_to = idx(row_curr -2, col_curr + 2)
+
+      forcedmoves(i * 2 + 2) := (
+        (io.In(i)==="b100".U)//blackpiece confirm. 
+        &&
+        (io.In(to_jump_over) === "b001".U ||io.In(to_jump_over)==="b010".U)//whitepiece confirm. 
+        &&
+          io.In(to_jump_to) === "b000".U
+      )
+
+    }
+
+    //must jump up left: NOT DONE. FIX INDEXES AND REQUIRE KING
+      if (row_curr >=2 && col_curr >= 2) {
+      val to_jump_over = idx(row_curr - 1, col_curr - 1)
+      val to_jump_to = idx(row_curr - 2, col_curr - 2)
+
+      forcedmoves(i * 2 + 3) := (
+        (io.In(i)==="b100".U)//blackpiece confirm. 
+        &&
+        (io.In(to_jump_over) === "b001".U ||io.In(to_jump_over)==="b010".U)//whitepiece confirm. 
+        &&
           io.In(to_jump_to) === "b000".U
       )
 
