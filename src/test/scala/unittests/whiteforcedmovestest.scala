@@ -11,14 +11,12 @@ class whiteforcedmovestest extends AnyFlatSpec with ChiselScalatestTester {
       for (i <- 0 to 31) {
         dut.io.In(i).poke("b000".U)
       }
-
       dut.io.out.expect(
         false.B,
         "there shouldn't be forced moves on an empty board"
       )
     }
   }
-
   it should "have a forced move with a white pawn on 26 and a black pawn on 22" in {
     test(new WhiteForcedMoves()) { dut =>
       for (i <- 0 to 31) {
@@ -30,7 +28,6 @@ class whiteforcedmovestest extends AnyFlatSpec with ChiselScalatestTester {
           dut.io.In(i).poke("b000".U)
         }
       }
-
       dut.io.out.expect(
         true.B,
         "should be a forced move here!"
