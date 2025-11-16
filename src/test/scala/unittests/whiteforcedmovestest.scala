@@ -35,5 +35,3 @@ class whiteforcedmovestest extends AnyFlatSpec with ChiselScalatestTester {
     }
   }
 }
-
-
