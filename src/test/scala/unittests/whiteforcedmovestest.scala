@@ -16,7 +16,6 @@ class whiteforcedmovestest extends AnyFlatSpec with ChiselScalatestTester {
         false.B,
         "there shouldn't be forced moves on an empty board"
       )
-
     }
   }
 
@@ -36,10 +35,8 @@ class whiteforcedmovestest extends AnyFlatSpec with ChiselScalatestTester {
         true.B,
         "should be a forced move here!"
       )
-
     }
   }
-
 }
 
 
