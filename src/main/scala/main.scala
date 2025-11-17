@@ -73,8 +73,8 @@ class ChiselCheckers() extends Module {
       moveValidator.io.board := board
       moveValidator.io.from := io.from
       moveValidator.io.to := io.to
-      moveValidator.io.color:=0.U
-        //I've set 0 to be black. Probably a bad decision hehe
+      moveValidator.io.color := 0.U
+      // I've set 0 to be black. Probably a bad decision hehe
 
       io.isMoveValid := moveValidator.io.ValidMove
 

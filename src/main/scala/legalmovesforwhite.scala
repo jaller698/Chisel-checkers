@@ -66,7 +66,7 @@ class LegalMovesForWhite() extends Module {
     }
      */
     val canJumpArray = VecInit(io.whereWeCanMove.zipWithIndex.collect {
-      case (elem, ind) if (ind % 4 == 1 || ind % 4 == 3) => elem 
+      case (elem, ind) if (ind % 4 == 1 || ind % 4 == 3) => elem
     })
     io.forcedMoves := canJumpArray.reduceTree((x, y) => x || y)
 

@@ -36,13 +36,15 @@ class WhiteForcedMoves() extends Module {
       val to_jump_over = idx(row_curr + 1, col_curr - 1)
       val to_jump_to = idx(row_curr + 2, col_curr - 2)
       forcedmoves(i * 2) := (
-        (io.In(i) === "b010".U)//white king only
-        &&
-        (io.In(to_jump_over) === "b011".U ||io.In(to_jump_over)==="b100".U)//black piece
-        &&
-          io.In(
-            to_jump_to
-          ) === "b000".U 
+        (io.In(i) === "b010".U) // white king only
+          &&
+            (io.In(to_jump_over) === "b011".U || io.In(
+              to_jump_over
+            ) === "b100".U) // black piece
+            &&
+            io.In(
+              to_jump_to
+            ) === "b000".U
       )
 
     }
@@ -53,39 +55,45 @@ class WhiteForcedMoves() extends Module {
 
       forcedmoves(i * 2 + 1) := (
         (io.In(i) === "b010".U)
-        &&
-        (io.In(to_jump_over) === "b011".U ||io.In(to_jump_over)==="b100".U) 
-        &&
-          io.In(to_jump_to) === "b000".U
+          &&
+            (io.In(to_jump_over) === "b011".U || io.In(
+              to_jump_over
+            ) === "b100".U)
+            &&
+            io.In(to_jump_to) === "b000".U
       )
 
     }
-    //must jump up right 
-    if (row_curr >=2 && col_curr <= 7 - 2) {
+    // must jump up right
+    if (row_curr >= 2 && col_curr <= 7 - 2) {
       val to_jump_over = idx(row_curr - 1, col_curr + 1)
-      val to_jump_to = idx(row_curr -2, col_curr + 2)
+      val to_jump_to = idx(row_curr - 2, col_curr + 2)
 
       forcedmoves(i * 2 + 2) := (
-        (io.In(i)==="b001".U||io.In(i)==="b010".U)//white piece
-        &&
-        (io.In(to_jump_over) === "b011".U ||io.In(to_jump_over)==="b100".U)//blackpiece confirm. 
-        &&
-          io.In(to_jump_to) === "b000".U
+        (io.In(i) === "b001".U || io.In(i) === "b010".U) // white piece
+          &&
+            (io.In(to_jump_over) === "b011".U || io.In(
+              to_jump_over
+            ) === "b100".U) // blackpiece confirm.
+            &&
+            io.In(to_jump_to) === "b000".U
       )
 
     }
 
-    //must jump up left: 
-      if (row_curr >=2 && col_curr >= 2) {
+    // must jump up left:
+    if (row_curr >= 2 && col_curr >= 2) {
       val to_jump_over = idx(row_curr - 1, col_curr - 1)
       val to_jump_to = idx(row_curr - 2, col_curr - 2)
 
       forcedmoves(i * 2 + 3) := (
-        (io.In(i)==="b001".U||io.In(i)==="b010".U)//whitepiece 
-        &&
-        (io.In(to_jump_over) === "b011".U ||io.In(to_jump_over)==="b100".U)//blackpiece confirm
-        &&
-          io.In(to_jump_to) === "b000".U
+        (io.In(i) === "b001".U || io.In(i) === "b010".U) // whitepiece
+          &&
+            (io.In(to_jump_over) === "b011".U || io.In(
+              to_jump_over
+            ) === "b100".U) // blackpiece confirm
+            &&
+            io.In(to_jump_to) === "b000".U
       )
 
     }

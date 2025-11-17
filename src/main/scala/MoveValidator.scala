@@ -18,7 +18,7 @@ class MoveValidator2 extends Module {
 
     val board = Input(Vec(32, UInt(3.W)))
 
-    val color=Input(UInt(1.W))//0 is black, 1 is white. 
+    val color = Input(UInt(1.W)) // 0 is black, 1 is white.
     val from = Input(UInt(5.W))
     val to = Input(UInt(5.W))
 
