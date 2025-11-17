@@ -1,7 +1,7 @@
 import chisel3._
 import chisel3.util._
 
-class BlackForcedMoves() extends Module {
+class WhiteForcedMoves() extends Module {
 
   private def row(i: Int) = i / 4
   private def col(i: Int): Int = {
@@ -36,11 +36,11 @@ class BlackForcedMoves() extends Module {
       val to_jump_over = idx(row_curr + 1, col_curr - 1)
       val to_jump_to = idx(row_curr + 2, col_curr - 2)
       forcedmoves(i * 2) := (
-        (io.In(i) === "b011".U || io.In(i) === "b100".U) // blackpiece confirm.
+        (io.In(i) === "b010".U) // white king only
           &&
-            (io.In(to_jump_over) === "b001".U || io.In(
+            (io.In(to_jump_over) === "b011".U || io.In(
               to_jump_over
-            ) === "b010".U) // whitepiece confirm
+            ) === "b100".U) // black piece
             &&
             io.In(
               to_jump_to
@@ -54,44 +54,44 @@ class BlackForcedMoves() extends Module {
       val to_jump_to = idx(row_curr + 2, col_curr + 2)
 
       forcedmoves(i * 2 + 1) := (
-        (io.In(i) === "b011".U || io.In(i) === "b100".U) // blackpiece confirm.
+        (io.In(i) === "b010".U)
           &&
-            (io.In(to_jump_over) === "b001".U || io.In(
+            (io.In(to_jump_over) === "b011".U || io.In(
               to_jump_over
-            ) === "b010".U) // whitepiece confirm.
+            ) === "b100".U)
             &&
             io.In(to_jump_to) === "b000".U
       )
 
     }
-    // must jump up right NOT DONE FIX INDEXES AND REQUIRES KING
+    // must jump up right
     if (row_curr >= 2 && col_curr <= 7 - 2) {
       val to_jump_over = idx(row_curr - 1, col_curr + 1)
       val to_jump_to = idx(row_curr - 2, col_curr + 2)
 
       forcedmoves(i * 2 + 2) := (
-        (io.In(i) === "b100".U) // blackpiece confirm.
+        (io.In(i) === "b001".U || io.In(i) === "b010".U) // white piece
           &&
-            (io.In(to_jump_over) === "b001".U || io.In(
+            (io.In(to_jump_over) === "b011".U || io.In(
               to_jump_over
-            ) === "b010".U) // whitepiece confirm.
+            ) === "b100".U) // blackpiece confirm.
             &&
             io.In(to_jump_to) === "b000".U
       )
 
     }
 
-    // must jump up left: NOT DONE. FIX INDEXES AND REQUIRE KING
+    // must jump up left:
     if (row_curr >= 2 && col_curr >= 2) {
       val to_jump_over = idx(row_curr - 1, col_curr - 1)
       val to_jump_to = idx(row_curr - 2, col_curr - 2)
 
       forcedmoves(i * 2 + 3) := (
-        (io.In(i) === "b100".U) // blackpiece confirm.
+        (io.In(i) === "b001".U || io.In(i) === "b010".U) // whitepiece
           &&
-            (io.In(to_jump_over) === "b001".U || io.In(
+            (io.In(to_jump_over) === "b011".U || io.In(
               to_jump_over
-            ) === "b010".U) // whitepiece confirm.
+            ) === "b100".U) // blackpiece confirm
             &&
             io.In(to_jump_to) === "b000".U
       )
