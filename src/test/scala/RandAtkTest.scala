@@ -21,7 +21,8 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
         else sEmpty
       }
       val testAtks = Seq.tabulate(128) { i =>
-        if (i == 83) true.B
+        if (i == 85) true.B //21*4 +1 (3 is up left, 1 is up right)
+        else if (i == 83) true.B //20*4 +3 (3 is up left, 1 is up right)
         else false.B
       }
       dut.io.AtkPresent.poke(true.B)
@@ -34,9 +35,12 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
       }
 
       dut.clock.step()
-      dut.io.boardWrite(20).expect(sEmpty)
+      // dut.io.boardWrite(20).expect(sEmpty)
+      // dut.io.boardWrite(16).expect(sEmpty)
+      // dut.io.boardWrite(13).expect(sWhite)
+      dut.io.boardWrite(21).expect(sEmpty)
       dut.io.boardWrite(16).expect(sEmpty)
-      dut.io.boardWrite(13).expect(sWhite)
+      dut.io.boardWrite(12).expect(sWhite)
     }
   }
 
