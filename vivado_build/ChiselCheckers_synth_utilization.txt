@@ -1,8 +1,8 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.1 (lin64) Build 6140274 Wed May 21 22:58:25 MDT 2025
-| Date         : Tue Nov  4 13:18:42 2025
 | Host         : C-PW055NGT running 64-bit unknown
+| Date         : Tue Nov 18 16:52:40 2025
 | Command      : report_utilization -file ./vivado_build/ChiselCheckers_synth_utilization.txt -hierarchical
 | Design       : ChiselCheckers
 | Device       : xc7a100tcsg324-1
@@ -22,7 +22,7 @@ Table of Contents
 +----------------+--------+------------+------------+---------+------+-----+--------+--------+------------+
 |    Instance    | Module | Total LUTs | Logic LUTs | LUTRAMs | SRLs | FFs | RAMB36 | RAMB18 | DSP Blocks |
 +----------------+--------+------------+------------+---------+------+-----+--------+--------+------------+
-| ChiselCheckers |  (top) |        130 |        130 |       0 |    0 |  64 |      0 |      0 |          0 |
+| ChiselCheckers |  (top) |        622 |        622 |       0 |    0 | 102 |      0 |      0 |          0 |
 +----------------+--------+------------+------------+---------+------+-----+--------+--------+------------+
 
 
