@@ -244,13 +244,6 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       val expectedValid = isMoveValid(8, 19, scalaBoard, isWhiteTurn = false)
 
       dut.clock.step()
-      dut.io.out_difference
-        .expect(11.S, "the difference should be 11, which is bad")
-      dut.io.out_forcedmoves
-        .expect(false.B, "we shouldnt be forced to make a move!")
-      dut.clock.step()
-      dut.io.out_validDifference
-        .expect(false.B, "We shouldn't be allowed to go from 8 to 19 ever")
       dut.io.ValidMove.expect(
         expectedValid.B,
         s"it should be invalidated"

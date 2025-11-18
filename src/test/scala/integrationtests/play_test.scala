@@ -29,7 +29,12 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
     for (i <- 0 until 32) {
       c.io.from.poke(i.U)
       c.clock.step(1)
+      // Wait for valid, then pulse ack
+      while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
       val colorAtTile = c.io.colorAtTile.peek().litValue.toInt
+      c.io.ack.poke(true.B)
+      c.clock.step(1)
+      c.io.ack.poke(false.B)
 
       val displayChar: Char = colorAtTile match {
         case 0 => '·' // empty dark square (use a visible dot)
@@ -74,15 +79,25 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
       c.clock.step(1)
       c.reset.poke(false.B)
 
-      // Initialize board: mode = 0 => clearing memory
-      println("Asserting init mode (mode = 0) to clear board.")
-      c.io.mode.poke(0.U)
-      c.clock.step(1) // let initialization happen
+      // Initialize board: op = 0 => clearing memory
+      println("Asserting init op (op = 0) to clear board.")
+      c.io.op.poke(0.U)
+      c.clock.step(1)
+      // Wait for valid, then ack
+      while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
+      c.io.ack.poke(true.B)
+      c.clock.step(1)
+      c.io.ack.poke(false.B)
       println("Board initialized to empty.")
 
-      // Switch to read mode (mode = 2)
-      c.io.mode.poke(2.U)
-      c.clock.step(1) // let mode switch happen
+      // Switch to read op (op = 2)
+      c.io.op.poke(2.U)
+      c.clock.step(1)
+      // Wait for valid, then ack
+      while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
+      c.io.ack.poke(true.B)
+      c.clock.step(1)
+      c.io.ack.poke(false.B)
       println("Current board state:")
       printBoard(c)
 
@@ -108,15 +123,15 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
           // poke the from and to positions
           c.io.from.poke(fromPos.U)
           c.io.to.poke(toPos.U)
-          // switch to play mode
-          c.io.mode.poke(1.U)
-          c.clock.step(1) // let the move process
-
-          // wait for ready
-          while (c.io.ready.peek().litToBoolean == false) {
-            c.clock.step(1)
-          }
+          // switch to play op
+          c.io.op.poke(1.U)
+          c.clock.step(1)
+          // Wait for valid, then ack
+          while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
           val isValid = c.io.isMoveValid.peek().litToBoolean
+          c.io.ack.poke(true.B)
+          c.clock.step(1)
+          c.io.ack.poke(false.B)
           if (isValid) {
             println(s"Move from $fromPos to $toPos is VALID.")
           } else {
@@ -124,8 +139,13 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
           }
 
           // then print the board again
-          c.io.mode.poke(2.U) // switch back to view mode
+          c.io.op.poke(2.U) // switch back to view op
           c.clock.step(1)
+          // Wait for valid, then ack
+          while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
+          c.io.ack.poke(true.B)
+          c.clock.step(1)
+          c.io.ack.poke(false.B)
           println("Current board state after move:")
           printBoard(c)
         }
