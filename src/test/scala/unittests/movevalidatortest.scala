@@ -1,8 +1,22 @@
 import chisel3._
 import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
+import CheckerRules._
 
 class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
+
+  def convertToScalaBoard(dutBoard: Vec[UInt]): Vector[Piece] = {
+    Vector.tabulate(32) { i =>
+      dutBoard(i).peek().litValue.toInt match {
+        case 0 => Empty
+        case 1 => White
+        case 2 => WhiteKing
+        case 3 => Black
+        case 4 => BlackKing
+        case _ => Empty
+      }
+    }
+  }
 
   behavior of "move validator"
 
@@ -20,8 +34,12 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.from.poke(22)
       dut.io.to.poke(26)
 
+      // Convert hardware board to Scala board for validation
+      val scalaBoard = convertToScalaBoard(dut.io.board)
+      val expectedValid = isMoveValid(22, 26, scalaBoard, isWhiteTurn = false)
+
       dut.io.ValidMove.expect(
-        true.B,
+        expectedValid.B,
         s"going from 22 to 26 with black should be valid"
       )
 
@@ -33,9 +51,21 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
         } else {
           dut.io.newboard(i).expect("b000".U, s"piece $i should be empty!")
         }
-
       }
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      val updatedBoard = applyMove(22, 26, scalaBoard)
+      updatedBoard match {
+        case Some(expectedBoard) =>
+          for (i <- 0 to 31) {
+            assert(
+              newScalaBoard(i) == expectedBoard(i),
+              s"Position $i: expected ${expectedBoard(i)}, got ${newScalaBoard(i)}"
+            )
+          }
+        case None =>
+          fail("applyMove returned None - move should have been valid")
+      }
     }
   }
 
@@ -50,27 +80,34 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       }
 
       dut.io.color.poke(0.U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
 
       dut.io.from.poke(17)
       // 17 is just a random place in the middle of the board. Don't think so deeply about it.
       for (i <- 0 to 15) {
         dut.io.to.poke(i)
+        val expectedValid = isMoveValid(17, i, scalaBoard, isWhiteTurn = false)
         dut.io.ValidMove.expect(
-          false.B,
+          expectedValid.B,
           s"going from 17 upwards to $i with black should be invalid"
         )
-
       }
 
       for (i <- 0 to 31) {
         if (i == 17) {
-          dut.io.newboard(i).expect("b011".U, "the piece should still be at 16")
+          dut.io.newboard(i).expect("b011".U, "the piece should still be at 17")
         } else {
           dut.io.newboard(i).expect("b000".U, s"piece $i should be empty!")
         }
-
       }
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      for (i <- 0 to 31) {
+        assert(
+          newScalaBoard(i) == scalaBoard(i),
+          s"Position $i: board should remain unchanged"
+        )
+      }
     }
   }
 
@@ -87,14 +124,15 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       }
 
       dut.io.color.poke(0.U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
 
       dut.io.from.poke(22)
       dut.io.to.poke(25)
-      // 17 is just a random place in the middle of the board. Don't think so deeply about it.
 
+      val expectedValid1 = isMoveValid(22, 25, scalaBoard, isWhiteTurn = false)
       dut.io.ValidMove.expect(
-        false.B,
-        s"going from 22 to 25 should be invalid because there is a forcedmove"
+        expectedValid1.B,
+        s"going from 22 to 25 should be invalid because there is a forced move"
       )
 
       for (i <- 0 to 31) {
@@ -107,19 +145,44 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
         }
       }
 
+      val newScalaBoard1 = convertToScalaBoard(dut.io.newboard)
+      for (i <- 0 to 31) {
+        assert(
+          newScalaBoard1(i) == scalaBoard(i),
+          s"Position $i: board should remain unchanged after invalid move"
+        )
+      }
+
       dut.io.from.poke(22)
       dut.io.to.poke(31)
 
-      dut.io.ValidMove.expect(true.B, "going from 22 to 31 should be allowed")
+      val expectedValid2 = isMoveValid(22, 31, scalaBoard, isWhiteTurn = false)
+      dut.io.ValidMove
+        .expect(expectedValid2.B, "going from 22 to 31 should be allowed")
 
       for (i <- 0 to 31) {
         if (i == 31) {
-          dut.io.newboard(i).expect("b011".U, "31 should be black")
+          dut.io
+            .newboard(i)
+            .expect("b100".U, "31 should be black king (promoted)")
         } else {
           dut.io.newboard(i).expect("b000".U, s"$i should be empty")
         }
       }
 
+      val newScalaBoard2 = convertToScalaBoard(dut.io.newboard)
+      val updatedBoard = applyMove(22, 31, scalaBoard)
+      updatedBoard match {
+        case Some(expectedBoard) =>
+          for (i <- 0 to 31) {
+            assert(
+              newScalaBoard2(i) == expectedBoard(i),
+              s"Position $i: expected ${expectedBoard(i)}, got ${newScalaBoard2(i)}"
+            )
+          }
+        case None =>
+          fail("applyMove returned None - move should have been valid")
+      }
     }
   }
 
@@ -134,16 +197,18 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       }
       dut.io.color.poke(0.U)
 
+      val scalaBoard = convertToScalaBoard(dut.io.board)
+
       dut.io.from.poke(20)
       dut.io.to.poke(26)
 
+      val expectedValid = isMoveValid(20, 26, scalaBoard, isWhiteTurn = false)
       dut.io.ValidMove.expect(
-        false.B,
+        expectedValid.B,
         s"it should be invalidated"
       )
 
       for (i <- 0 to 31) {
-        // myprint()
         if (i == 22) {
           dut.io
             .newboard(i)
@@ -151,28 +216,33 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
         } else {
           dut.io.newboard(i).expect("b000".U, s"piece $i should be empty!")
         }
-
       }
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      for (i <- 0 to 31) {
+        assert(
+          newScalaBoard(i) == scalaBoard(i),
+          s"Position $i: board should remain unchanged after invalid move"
+        )
+      }
     }
   }
 
   it should "put black pieces on 8,9,10,11 and try to move from 8 to 19 and fail" in {
     test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
-
         dut.io.board(i).poke("b000".U)
-
       }
       dut.io.board(8).poke("b011".U)
-      // dut.io.board(9).poke("b011".U)
-      // dut.io.board(10).poke("b011".U)
-      // dut.io.board(11).poke("b011".U)
       dut.io.color.poke(0.U)
 
-      dut.io.color.poke(0.U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
+
       dut.io.from.poke(8)
       dut.io.to.poke(19)
+
+      val expectedValid = isMoveValid(8, 19, scalaBoard, isWhiteTurn = false)
+
       dut.clock.step()
       dut.io.out_difference
         .expect(11.S, "the difference should be 11, which is bad")
@@ -182,25 +252,17 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.out_validDifference
         .expect(false.B, "We shouldn't be allowed to go from 8 to 19 ever")
       dut.io.ValidMove.expect(
-        false.B,
+        expectedValid.B,
         s"it should be invalidated"
       )
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
       for (i <- 0 to 31) {
-        // myprint()
-        if (i == 8) {
-          dut.io
-            .newboard(i)
-            .expect(
-              "b011".U,
-              s" $i should still contain a black pawn because the board wasn't changed"
-            )
-        } else {
-          dut.io.newboard(i).expect("b000".U, s"piece $i should be empty!")
-        }
-
+        assert(
+          newScalaBoard(i) == scalaBoard(i),
+          s"Position $i: board should remain unchanged after invalid move"
+        )
       }
-
     }
   }
 
@@ -215,16 +277,18 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       }
       dut.io.color.poke(0.U)
 
+      val scalaBoard = convertToScalaBoard(dut.io.board)
+
       dut.io.from.poke(11)
       dut.io.to.poke(16)
 
+      val expectedValid1 = isMoveValid(11, 16, scalaBoard, isWhiteTurn = false)
       dut.io.ValidMove.expect(
-        false.B,
+        expectedValid1.B,
         s"it should be invalidated"
       )
 
       for (i <- 0 to 31) {
-        // myprint()
         if (i == 11) {
           dut.io
             .newboard(i)
@@ -232,28 +296,47 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
         } else {
           dut.io.newboard(i).expect("b000".U, s"piece $i should be empty!")
         }
+      }
 
+      val newScalaBoard1 = convertToScalaBoard(dut.io.newboard)
+      for (i <- 0 to 31) {
+        assert(
+          newScalaBoard1(i) == scalaBoard(i),
+          s"Position $i: board should remain unchanged after invalid move"
+        )
       }
 
       dut.io.from.poke(11)
       dut.io.to.poke(15)
+      val expectedValid2 = isMoveValid(11, 15, scalaBoard, isWhiteTurn = false)
       dut.io.ValidMove.expect(
-        true.B,
+        expectedValid2.B,
         "This move should be valid!"
       )
 
       for (i <- 0 to 31) {
-        // myprint()
         if (i == 15) {
           dut.io
             .newboard(i)
-            .expect("b011".U, "the piece should have moved to 11")
+            .expect("b011".U, "the piece should have moved to 15")
         } else {
           dut.io.newboard(i).expect("b000".U, s"piece $i should be empty!")
         }
-
       }
 
+      val newScalaBoard2 = convertToScalaBoard(dut.io.newboard)
+      val updatedBoard = applyMove(11, 15, scalaBoard)
+      updatedBoard match {
+        case Some(expectedBoard) =>
+          for (i <- 0 to 31) {
+            assert(
+              newScalaBoard2(i) == expectedBoard(i),
+              s"Position $i: expected ${expectedBoard(i)}, got ${newScalaBoard2(i)}"
+            )
+          }
+        case None =>
+          fail("applyMove returned None - move should have been valid")
+      }
     }
   }
 
@@ -262,30 +345,29 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       for (i <- 0 to 31) {
         if (i == 5) {
           dut.io.board(i).poke("b011".U)
-
         } else if (i == 9) {
           dut.io.board(i).poke("b001".U)
         } else
           dut.io.board(i).poke("b000".U)
-
       }
 
       dut.io.color.poke(0.U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
 
       dut.io.from.poke(5)
       dut.io.to.poke(14)
 
+      val expectedValid = isMoveValid(5, 14, scalaBoard, isWhiteTurn = false)
       dut.io.ValidMove.expect(
-        true.B,
+        expectedValid.B,
         s"it should be allowed to jump from 5 to 14, capturing 9"
       )
 
       for (i <- 0 to 31) {
-        // myprint()
         if (i == 14) {
           dut.io
             .newboard(i)
-            .expect("b011".U, "the piece should have moved to 11")
+            .expect("b011".U, "the piece should have moved to 14")
         } else {
           dut.io
             .newboard(i)
@@ -294,9 +376,21 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
               s"piece $i should be empty! 5 and 9 are especially sketchy here!"
             )
         }
-
       }
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      val updatedBoard = applyMove(5, 14, scalaBoard)
+      updatedBoard match {
+        case Some(expectedBoard) =>
+          for (i <- 0 to 31) {
+            assert(
+              newScalaBoard(i) == expectedBoard(i),
+              s"Position $i: expected ${expectedBoard(i)}, got ${newScalaBoard(i)}"
+            )
+          }
+        case None =>
+          fail("applyMove returned None - move should have been valid")
+      }
     }
   }
 
@@ -305,26 +399,25 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       for (i <- 0 to 31) {
         if (i == 11) {
           dut.io.board(i).poke("b011".U)
-
         } else if (i == 15) {
           dut.io.board(i).poke("b001".U)
         } else
           dut.io.board(i).poke("b000".U)
-
       }
 
       dut.io.color.poke(0.U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
 
       dut.io.from.poke(11)
       dut.io.to.poke(18)
 
+      val expectedValid = isMoveValid(11, 18, scalaBoard, isWhiteTurn = false)
       dut.io.ValidMove.expect(
-        true.B,
+        expectedValid.B,
         s"it should be allowed to jump from 11 to 18, capturing 15"
       )
 
       for (i <- 0 to 31) {
-        // myprint()
         if (i == 18) {
           dut.io
             .newboard(i)
@@ -334,12 +427,24 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
             .newboard(i)
             .expect(
               "b000".U,
-              s"piece $i should be empty! 5 and 9 are especially sketchy here!"
+              s"piece $i should be empty! 11 and 15 are especially sketchy here!"
             )
         }
-
       }
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      val updatedBoard = applyMove(11, 18, scalaBoard)
+      updatedBoard match {
+        case Some(expectedBoard) =>
+          for (i <- 0 to 31) {
+            assert(
+              newScalaBoard(i) == expectedBoard(i),
+              s"Position $i: expected ${expectedBoard(i)}, got ${newScalaBoard(i)}"
+            )
+          }
+        case None =>
+          fail("applyMove returned None - move should have been valid")
+      }
     }
   }
 
@@ -356,21 +461,21 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
 
         } else
           dut.io.board(i).poke("b000".U)
-
       }
 
       dut.io.color.poke(0.U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
 
       dut.io.from.poke(0)
       dut.io.to.poke(9)
 
+      val expectedValid = isMoveValid(0, 9, scalaBoard, isWhiteTurn = false)
       dut.io.ValidMove.expect(
-        false.B,
+        expectedValid.B,
         s"it shouldn't be allowed to jump from 0 to 9, capturing 5. The move should fail"
       )
 
       for (i <- 0 to 31) {
-        // myprint()
         if (i == 0) {
           dut.io
             .newboard(i)
@@ -387,145 +492,168 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
         } else {
           dut.io.newboard(i).expect("b000".U, s"piece $i should be empty!")
         }
-
       }
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      for (i <- 0 to 31) {
+        assert(
+          newScalaBoard(i) == scalaBoard(i),
+          s"Position $i: board should remain unchanged after invalid move"
+        )
+      }
     }
   }
 
   it should "input a few white tiles and see that white can capture" in {
     test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
-
         dut.io.board(i).poke("b000".U)
-
       }
       dut.io.board(31).poke("b001".U) // white pawn
       dut.io.board(26).poke("b100".U) // black king
       dut.io.board(5).poke("b010".U) // random other piece
 
       dut.io.color.poke(1.U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
 
       dut.io.from.poke(31)
       dut.io.to.poke(22)
 
+      val expectedValid = isMoveValid(31, 22, scalaBoard, isWhiteTurn = true)
       dut.io.ValidMove.expect(
-        true.B,
+        expectedValid.B,
         s"it should be allowed to jump from 31 to 22, capturing 26"
       )
 
-      for (i <- 0 to 31) {
-        // myprint()
-        if (i == 22) {
-          dut.io
-            .newboard(i)
-            .expect("b001".U, "the piece should have moved to 22")
-        } else if (i == 5) {
-          dut.io.newboard(i).expect("b010".U, "this piece should be unchanged!")
-        } else {
-          dut.io
-            .newboard(i)
-            .expect(
-              "b000".U,
-              s"piece $i should be empty! 31 and 26 are especially sketchy here!"
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      val updatedBoard = applyMove(31, 22, scalaBoard)
+      updatedBoard match {
+        case Some(expectedBoard) =>
+          for (i <- 0 to 31) {
+            assert(
+              newScalaBoard(i) == expectedBoard(i),
+              s"Position $i: expected ${expectedBoard(i)}, got ${newScalaBoard(i)}"
             )
-        }
-
+          }
+        case None =>
+          fail("applyMove returned None - move should have been valid")
       }
-
     }
   }
 
   it should "validate some simple movement for a white pawn" in {
     test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
-
         dut.io.board(i).poke("b000".U)
-
       }
       dut.io.board(29).poke("b001".U) // white pawn
 
       dut.io.color.poke(1.U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
 
       dut.io.from.poke(29.U)
       dut.io.to.poke(24.U)
 
+      val expectedValid1 = isMoveValid(29, 24, scalaBoard, isWhiteTurn = true)
       dut.io.ValidMove.expect(
-        true.B,
+        expectedValid1.B,
         s"it should be allowed to go from 29 to 24"
       )
 
       dut.io.to.poke(25.U)
-      dut.io.ValidMove.expect(true.B, "it should be able to go from 29 to 25")
+      val expectedValid2 = isMoveValid(29, 25, scalaBoard, isWhiteTurn = true)
+      dut.io.ValidMove
+        .expect(expectedValid2.B, "it should be able to go from 29 to 25")
 
       dut.io.to.poke(30.U)
+      val expectedValid3 = isMoveValid(29, 30, scalaBoard, isWhiteTurn = true)
       dut.io.ValidMove
-        .expect(false.B, "it shouldn't be allowed to go to 30 from 29")
-
+        .expect(expectedValid3.B, "it shouldn't be allowed to go to 30 from 29")
     }
   }
 
   it should "validate some simple movement for a white king" in {
     test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
-
         dut.io.board(i).poke("b000".U)
-
       }
       dut.io.board(8).poke("b010".U) // white king
 
       dut.io.color.poke(1.U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
 
       dut.io.from.poke(8)
       dut.io.to.poke(4)
 
+      val expectedValid1 = isMoveValid(8, 4, scalaBoard, isWhiteTurn = true)
       dut.io.ValidMove.expect(
-        true.B,
+        expectedValid1.B,
         s"it should be allowed to go from 8 to 4"
       )
 
       dut.io.to.poke(5)
-      dut.io.ValidMove.expect(true.B, "it should be able to go from 8 to 5")
+      val expectedValid2 = isMoveValid(8, 5, scalaBoard, isWhiteTurn = true)
+      dut.io.ValidMove
+        .expect(expectedValid2.B, "it should be able to go from 8 to 5")
 
       dut.io.to.poke(12)
+      val expectedValid3 = isMoveValid(8, 12, scalaBoard, isWhiteTurn = true)
       dut.io.ValidMove
-        .expect(true.B, "it shouldn't be allowed to go to 8 from 12")
+        .expect(expectedValid3.B, "it should be allowed to go from 8 to 12")
 
       dut.io.to.poke(13)
+      val expectedValid4 = isMoveValid(8, 13, scalaBoard, isWhiteTurn = true)
       dut.io.ValidMove
-        .expect(true.B, "it shouldn't be allowed to go to 8 from 13")
+        .expect(expectedValid4.B, "it should be allowed to go from 8 to 13")
 
       dut.io.to.poke(8)
-      dut.io.ValidMove.expect(false.B, "it shouldnt be allowed to go to itself")
+      val expectedValid5 = isMoveValid(8, 8, scalaBoard, isWhiteTurn = true)
+      dut.io.ValidMove
+        .expect(expectedValid5.B, "it shouldnt be allowed to go to itself")
 
       for (i <- 14 to 28) {
         dut.io.to.poke(i.U)
+        val expectedValid = isMoveValid(8, i, scalaBoard, isWhiteTurn = true)
         dut.io.ValidMove
-          .expect(false.B, s"you shouldn't be able to go from 8 to $i")
+          .expect(expectedValid.B, s"you shouldn't be able to go from 8 to $i")
       }
-
     }
   }
 
   it should "invalidate a walk when a jump is available" in {
     test(new MoveValidator()) { dut =>
       for (i <- 0 to 31) {
-
         dut.io.board(i).poke("b000".U)
-
       }
       dut.io.color.poke(1.U)
       dut.io.board(14).poke("b001".U) // white pawn
       dut.io.board(9).poke("b100".U)
 
+      val scalaBoard = convertToScalaBoard(dut.io.board)
+
       dut.io.from.poke(14.U)
       dut.io.to.poke(10.U)
 
-      dut.io.ValidMove.expect(false.B, "there is a jump available")
+      val expectedValid1 = isMoveValid(14, 10, scalaBoard, isWhiteTurn = true)
+      dut.io.ValidMove.expect(expectedValid1.B, "there is a jump available")
 
       dut.io.to.poke(5.U)
-      dut.io.ValidMove.expect(true.B, "it should validate the jump!")
+      val expectedValid2 = isMoveValid(14, 5, scalaBoard, isWhiteTurn = true)
+      dut.io.ValidMove.expect(expectedValid2.B, "it should validate the jump!")
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      val updatedBoard = applyMove(14, 5, scalaBoard)
+      updatedBoard match {
+        case Some(expectedBoard) =>
+          for (i <- 0 to 31) {
+            assert(
+              newScalaBoard(i) == expectedBoard(i),
+              s"Position $i: expected ${expectedBoard(i)}, got ${newScalaBoard(i)}"
+            )
+          }
+        case None =>
+          fail("applyMove returned None - move should have been valid")
+      }
     }
   }
 
@@ -537,13 +665,30 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.color.poke(1.U)
 
       dut.io.board(6).poke("b001".U)
+      val scalaBoard = convertToScalaBoard(dut.io.board)
+
       dut.io.from.poke(6.U)
       dut.io.to.poke(2.U)
 
-      dut.io.ValidMove.expect(true.B, "we should be able to go from 6 to 2")
+      val expectedValid = isMoveValid(6, 2, scalaBoard, isWhiteTurn = true)
+      dut.io.ValidMove
+        .expect(expectedValid.B, "we should be able to go from 6 to 2")
       dut.io.newboard(2.U).expect("b010".U, "we should now have a king")
       dut.io.newboard(6.U).expect("b000".U, "the pawn should have moved!")
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      val updatedBoard = applyMove(6, 2, scalaBoard)
+      updatedBoard match {
+        case Some(expectedBoard) =>
+          for (i <- 0 to 31) {
+            assert(
+              newScalaBoard(i) == expectedBoard(i),
+              s"Position $i: expected ${expectedBoard(i)}, got ${newScalaBoard(i)}"
+            )
+          }
+        case None =>
+          fail("applyMove returned None - move should have been valid")
+      }
     }
   }
 
@@ -555,15 +700,33 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.color.poke(1.U)
       dut.io.board(10).poke("b001".U)
       dut.io.board(6).poke("b100".U)
+
+      val scalaBoard = convertToScalaBoard(dut.io.board)
+
       dut.io.from.poke(10.U)
       dut.io.to.poke(1.U)
+
+      val expectedValid = isMoveValid(10, 1, scalaBoard, isWhiteTurn = true)
       dut.io.ValidMove.expect(
-        true.B,
+        expectedValid.B,
         "should be able to jump over a piece to get from 10 to 1"
       )
       dut.io.newboard(1.U).expect("b010".U, "we should now have a king")
       dut.io.newboard(10.U).expect("b000".U, "the pawn should have moved!")
 
+      val newScalaBoard = convertToScalaBoard(dut.io.newboard)
+      val updatedBoard = applyMove(10, 1, scalaBoard)
+      updatedBoard match {
+        case Some(expectedBoard) =>
+          for (i <- 0 to 31) {
+            assert(
+              newScalaBoard(i) == expectedBoard(i),
+              s"Position $i: expected ${expectedBoard(i)}, got ${newScalaBoard(i)}"
+            )
+          }
+        case None =>
+          fail("applyMove returned None - move should have been valid")
+      }
     }
   }
 
@@ -581,10 +744,18 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
 
       dut.io.board(1).poke("b001".U)
       dut.io.board(28).poke("b100".U)
-      dut.io.from.poke(13)
-      dut.io.ValidMove
-        .expect(false.B, "cant move from 13 because nothing is on 13.")
 
+      val scalaBoard = convertToScalaBoard(dut.io.board)
+
+      dut.io.from.poke(13)
+      val expectedValid = isMoveValid(
+        13,
+        9,
+        scalaBoard,
+        isWhiteTurn = true
+      ) // arbitrary destination
+      dut.io.ValidMove
+        .expect(expectedValid.B, "cant move from 13 because nothing is on 13.")
     }
   }
 

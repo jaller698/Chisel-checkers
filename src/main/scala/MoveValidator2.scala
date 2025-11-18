@@ -259,11 +259,11 @@ is(11.S(6.W)){
     io.newboard(io.from) := "b000".U
     io.newboard(io.to) := io.board(io.from)
 
-    when(io.to / 8.U === 7.U && io.color === 0.U) {
-      io.newboard(io.to) := "b100".U // black king
+    when(io.to >= 28.U && io.color === 0.U) {
+      io.newboard(io.to) := "b100".U // black king - reaches bottom row (28-31)
     }
-    when(io.to / 8.U === 0.U && io.color === 1.U) {
-      io.newboard(io.to) := "b010".U // white king.
+    when(io.to <= 3.U && io.color === 1.U) {
+      io.newboard(io.to) := "b010".U // white king - reaches top row (0-3)
     }
 
   }
