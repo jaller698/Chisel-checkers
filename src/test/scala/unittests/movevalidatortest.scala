@@ -79,7 +79,6 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
         }
       }
 
-
       dut.io.color.poke(0.U)
       val scalaBoard = convertToScalaBoard(dut.io.board)
 
@@ -241,9 +240,9 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
 
       dut.io.from.poke(8)
       dut.io.to.poke(19)
-      
+
       val expectedValid = isMoveValid(8, 19, scalaBoard, isWhiteTurn = false)
-      
+
       dut.clock.step()
       dut.io.out_difference
         .expect(11.S, "the difference should be 11, which is bad")
@@ -563,7 +562,8 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
 
       dut.io.to.poke(25.U)
       val expectedValid2 = isMoveValid(29, 25, scalaBoard, isWhiteTurn = true)
-      dut.io.ValidMove.expect(expectedValid2.B, "it should be able to go from 29 to 25")
+      dut.io.ValidMove
+        .expect(expectedValid2.B, "it should be able to go from 29 to 25")
 
       dut.io.to.poke(30.U)
       val expectedValid3 = isMoveValid(29, 30, scalaBoard, isWhiteTurn = true)
@@ -593,7 +593,8 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
 
       dut.io.to.poke(5)
       val expectedValid2 = isMoveValid(8, 5, scalaBoard, isWhiteTurn = true)
-      dut.io.ValidMove.expect(expectedValid2.B, "it should be able to go from 8 to 5")
+      dut.io.ValidMove
+        .expect(expectedValid2.B, "it should be able to go from 8 to 5")
 
       dut.io.to.poke(12)
       val expectedValid3 = isMoveValid(8, 12, scalaBoard, isWhiteTurn = true)
@@ -607,7 +608,8 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
 
       dut.io.to.poke(8)
       val expectedValid5 = isMoveValid(8, 8, scalaBoard, isWhiteTurn = true)
-      dut.io.ValidMove.expect(expectedValid5.B, "it shouldnt be allowed to go to itself")
+      dut.io.ValidMove
+        .expect(expectedValid5.B, "it shouldnt be allowed to go to itself")
 
       for (i <- 14 to 28) {
         dut.io.to.poke(i.U)
@@ -669,7 +671,8 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.to.poke(2.U)
 
       val expectedValid = isMoveValid(6, 2, scalaBoard, isWhiteTurn = true)
-      dut.io.ValidMove.expect(expectedValid.B, "we should be able to go from 6 to 2")
+      dut.io.ValidMove
+        .expect(expectedValid.B, "we should be able to go from 6 to 2")
       dut.io.newboard(2.U).expect("b010".U, "we should now have a king")
       dut.io.newboard(6.U).expect("b000".U, "the pawn should have moved!")
 
@@ -745,7 +748,12 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
       val scalaBoard = convertToScalaBoard(dut.io.board)
 
       dut.io.from.poke(13)
-      val expectedValid = isMoveValid(13, 9, scalaBoard, isWhiteTurn = true) // arbitrary destination
+      val expectedValid = isMoveValid(
+        13,
+        9,
+        scalaBoard,
+        isWhiteTurn = true
+      ) // arbitrary destination
       dut.io.ValidMove
         .expect(expectedValid.B, "cant move from 13 because nothing is on 13.")
     }
