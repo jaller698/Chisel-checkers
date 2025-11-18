@@ -79,9 +79,9 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
         c.clock.step(1)
         c.reset.poke(false.B)
 
-        // Initialize board: mode = 0 => clearing memory
-        println("Asserting init mode (mode = 0) to clear board.")
-        c.io.mode.poke(0.U)
+        // Initialize board: op = 0 => clearing memory
+        println("Asserting init op (op = 0) to clear board.")
+        c.io.op.poke(0.U)
         c.clock.step(1)
         // Wait for valid, then ack
         while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
@@ -90,8 +90,8 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
         c.io.ack.poke(false.B)
         println("Board initialized to empty.")
 
-        // Switch to read mode (mode = 2)
-        c.io.mode.poke(2.U)
+        // Switch to read op (op = 2)
+        c.io.op.poke(2.U)
         c.clock.step(1)
         // Wait for valid, then ack
         while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
@@ -123,8 +123,8 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
             // poke the from and to positions
             c.io.from.poke(fromPos.U)
             c.io.to.poke(toPos.U)
-            // switch to play mode
-            c.io.mode.poke(1.U)
+            // switch to play op
+            c.io.op.poke(1.U)
             c.clock.step(1)
             // Wait for valid, then ack
             while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
@@ -139,7 +139,7 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
             }
 
             // then print the board again
-            c.io.mode.poke(2.U) // switch back to view mode
+            c.io.op.poke(2.U) // switch back to view op
             c.clock.step(1)
             // Wait for valid, then ack
             while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
