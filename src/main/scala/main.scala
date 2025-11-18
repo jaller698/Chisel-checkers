@@ -81,6 +81,12 @@ class ChiselCheckers extends Module {
           moveValidator.io.board := board
           moveValidator.io.from := io.from
           moveValidator.io.to := io.to
+          // TODO: This should not be a input. It should be derived from the piece at 'from' in the component.
+          moveValidator.io.color := Mux(
+            board(io.from) === sBlack || board(io.from) === sBlackKing,
+            0.U,
+            1.U
+          )
           isMoveValidReg := moveValidator.io.ValidMove
           colorAtTileReg := sEmpty
           when(moveValidator.io.ValidMove) {
