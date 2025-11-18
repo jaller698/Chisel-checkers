@@ -1,140 +1,82 @@
 import chisel3._
 import chisel3.util._
 
-//I can make this one do a bunch of things.
-//Return valid/invalid and then return the board after black did their move.
-
-//This one will only validate black moves because only black plays.
-//For now, it is only correct for black pawns.
-//TODO: Implement functionality for black kings too.
-//TODO: extend it to white as well.
-//  When adding white functionality
-//    we need to add an input that is the color moving and
-//    and building a whiteforcedmoves component.
-//      This should be fairly easy by copying code from blackforcedmoves
-
+// MoveValidator validates moves for a checkers-like game.
 class MoveValidator extends Module {
   val io = IO(new Bundle {
-
     val board = Input(Vec(32, UInt(3.W)))
-
-    val color = Input(UInt(1.W)) // 0 is black, 1 is white.
+    val color = Input(UInt(1.W)) // 0 = black, 1 = white
     val from = Input(UInt(5.W))
     val to = Input(UInt(5.W))
 
     val newboard = Output(Vec(32, UInt(3.W)))
-
     val ValidMove = Output(Bool())
-
-    // debugsignals
-
-    val out_colorMovingFromIsCorrect = Output(Bool())
-    val out_movingToEmpty = Output(Bool())
-    val out_correctColorInBetween = Output(Bool())
-    val out_validDirection = Output(Bool())
-    val out_validDifference = Output(Bool())
-    val out_difference = Output(SInt())
-    val out_forcedmoves = Output(Bool())
-
   })
 
+  val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
+
+  // Forced moves modules for both colors (white uses BlackForcedMoves for now)
   val forcedmovesblack = Module(new BlackForcedMoves())
-  for (i <- 0 to 31) {
-    forcedmovesblack.io.In(i) := io.board(i)
-  }
   val forcedmoveswhite = Module(new BlackForcedMoves())
-  for (i <- 0 to 31) {
+  for (i <- 0 until 32) {
+    forcedmovesblack.io.In(i) := io.board(i)
     forcedmoveswhite.io.In(i) := io.board(i)
   }
   val forcedmoves = Wire(Bool())
-  when(io.color === 0.U) {
-    forcedmoves := forcedmovesblack.io.out
-  }.otherwise {
-    forcedmoves := forcedmoveswhite.io.out
-  }
+  forcedmoves := Mux(
+    io.color === 0.U,
+    forcedmovesblack.io.out,
+    forcedmoveswhite.io.out
+  )
 
-  // first checking that color moving is correct.
-  val colorMovingFromIsCorrect =
-    (
-      io.color === 0.U && ( // color moving is black
-        io.board(io.from) === "b011".U || // black pawn
-          io.board(io.from) === "b100".U // black king
-      )
-    ) ||
-      (
-        io.color === 1.U && ( // color moving is white
-          io.board(io.from) === "b001".U || // white pawn
-            io.board(io.from) === "b010".U // white king.
-        )
-      )
-  // second checking that we are moving to an empty place.
-  val movingToEmpty = (io.board(io.to) === "b000".U)
+  // Check that the piece being moved matches the color
+  val colorMovingFromIsCorrect = (
+    (io.color === 0.U && (io
+      .board(io.from) === sBlack || io.board(io.from) === sBlackKing)) ||
+      (io.color === 1.U && (io.board(io.from) === sWhite || io.board(
+        io.from
+      ) === sWhiteKing))
+  )
 
-  // I won't zero out the thing in between before I know that it is a valid move.
+  // Check that the destination is empty
+  val movingToEmpty = (io.board(io.to) === sEmpty)
 
+  // Difference between destination and source
   val difference = Wire(SInt(6.W))
-  difference := io.to.asSInt - io.from.asSInt // This one is needed a lot.
-  // val difference = io.to.asSInt - io.from.asSInt //This one is needed a lot.
+  difference := io.to.asSInt - io.from.asSInt
 
-  // if difference is positive, it can't be a white pawn.
-  // if difference is negative it can't be a black pawn.
-  val validDirection = Wire(Bool()) // idk if I need something around this.
+  // Check that the move is in a valid direction for the piece
+  val validDirection = Wire(Bool())
   when(difference < 0.S) {
-    validDirection := io.board(io.from) =/= "b011".U
-    // maybe wrong. if diff under zero, cant be a black pawn.
-
+    validDirection := io.board(io.from) =/= sBlack // Not a black pawn
   }.otherwise {
-    validDirection := io.board(io.from) =/= "b001".U
-    // maybe wrong
+    validDirection := io.board(io.from) =/= sWhite // Not a white pawn
   }
 
-  /*
-        With the difference, I will do 2 things.
-        1. check that the difference is valid at all.
-        2. Check that the thing in between is valid.
-            Set the coordinate in between to be zero-ed out IF the movement is valid in the end.
-   */
-
-  // These two will be set again in the difference switch statement.
+  // Used for jumps: is there a piece in between, and is it the correct color?
   val isThereAnInBetween = Wire(Bool())
   isThereAnInBetween := false.B
   val coordinateInBetween = WireDefault(0.U(5.W))
 
-  val correctColorInBetween = Wire(
-    Bool()
-  ) // I'd init this without a default value if I knew more Chisel
+  val correctColorInBetween = Wire(Bool())
   correctColorInBetween := false.B
   when(isThereAnInBetween) {
-    correctColorInBetween :=
-      (io.color === 0.U &&
-        (
-          io.board(coordinateInBetween) === "b001".U ||
-            io.board(coordinateInBetween) === "b010".U
-        )) || (
-        io.color === 1.U && (
-          io.board(coordinateInBetween) === "b011".U ||
-            io.board(coordinateInBetween) === "b100".U
-        )
-      )
+    correctColorInBetween := (
+      (io.color === 0.U && (io.board(coordinateInBetween) === sWhite || io
+        .board(coordinateInBetween) === sWhiteKing)) ||
+        (io.color === 1.U && (io.board(coordinateInBetween) === sBlack || io
+          .board(coordinateInBetween) === sBlackKing))
+    )
   }.otherwise {
     correctColorInBetween := true.B
   }
 
-  // check that it is a valid movement with the difference.
-  // To know this, I need to do modulo stuff that would be based on the row of from or to
-  // checks that it is a valid move and then checks then zeroes out the thing in between.
+  // Check that the move is a valid jump or step, and set in-between coordinate if needed
   val validDifference = Wire(Bool())
   validDifference := false.B
 
   switch(difference) {
-    /*
-is(11.S(6.W)){
-        validDifference:=false.B
-    }
-     */
-
-    is(9.S(6.W)) { // jumping right. Could either be 4 or 5 to jump the first one.
-
+    is(9.S(6.W)) { // jump right forward
       validDifference := (io.from % 4.U =/= 3.U)
       when(io.from % 8.U <= 4.U) {
         coordinateInBetween := io.from + 5.U
@@ -142,11 +84,8 @@ is(11.S(6.W)){
         coordinateInBetween := io.from + 4.U
       }
       isThereAnInBetween := true.B
-      // not always valid.
-      // check which one is in the middle and color and such.
     }
-    is(7.S(6.W)) {
-
+    is(7.S(6.W)) { // jump left forward
       validDifference := (io.from % 4.U =/= 0.U)
       when(io.from % 8.U <= 4.U) {
         coordinateInBetween := io.from + 4.U
@@ -154,35 +93,20 @@ is(11.S(6.W)){
         coordinateInBetween := io.from + 3.U
       }
       isThereAnInBetween := true.B
-      // not always valid.
-      // check which one is in the middle and color and such.
-
     }
-    is(3.S(6.W)) {
-
+    is(3.S(6.W)) { // step left forward
       isThereAnInBetween := false.B
-      validDifference := (io.from % 8.U >= 5.U && forcedmoves === false.B)
-      // check if it is a valid move.
-      // check if move is forced.
-
+      validDifference := (io.from % 8.U >= 5.U && !forcedmoves)
     }
-    is(4.S(6.W)) {
-
+    is(4.S(6.W)) { // step right forward
       isThereAnInBetween := false.B
-      validDifference := (forcedmoves === false.B)
-      // check if move is forced.
-
+      validDifference := !forcedmoves
     }
-    is(5.S(6.W)) {
-
+    is(5.S(6.W)) { // step far right forward
       isThereAnInBetween := false.B
-      validDifference := (io.from % 8.U < 3.U && forcedmoves === false.B)
-
-      // check if it is a valid move.
-      // check if move is forced.
-
+      validDifference := (io.from % 8.U < 3.U && !forcedmoves)
     }
-    is(-9.S(6.W)) { // jumping right. Could either be 4 or 5 to jump the first one.
+    is(-9.S(6.W)) { // jump right backward
       validDifference := (io.from % 4.U =/= 0.U)
       when(io.from % 8.U <= 4.U) {
         coordinateInBetween := io.from - 4.U
@@ -190,11 +114,8 @@ is(11.S(6.W)){
         coordinateInBetween := io.from - 5.U
       }
       isThereAnInBetween := true.B
-      // not always valid.
-      // check which one is in the middle and color and such.
-
     }
-    is(-7.S(6.W)) {
+    is(-7.S(6.W)) { // jump left backward
       validDifference := (io.from % 4.U =/= 3.U)
       when(io.from % 8.U <= 4.U) {
         coordinateInBetween := io.from - 3.U
@@ -202,70 +123,39 @@ is(11.S(6.W)){
         coordinateInBetween := io.from - 4.U
       }
       isThereAnInBetween := true.B
-      // not always valid.
-      // check which one is in the middle and color and such.
-
     }
-    is(-3.S(6.W)) {
+    is(-3.S(6.W)) { // step left backward
       isThereAnInBetween := false.B
-      validDifference := (io.from % 8.U <= 5.U && forcedmoves === false.B)
-      // check if it is a valid move.
-      // check if move is forced.
-
+      validDifference := (io.from % 8.U <= 5.U && !forcedmoves)
     }
-    is(-4.S(6.W)) {
+    is(-4.S(6.W)) { // step right backward
       isThereAnInBetween := false.B
-      validDifference := (forcedmoves === false.B)
-
+      validDifference := !forcedmoves
     }
-    is(-5.S(6.W)) {
+    is(-5.S(6.W)) { // step far right backward
       isThereAnInBetween := false.B
-      validDifference := (io.from % 8.U >= 5.U && forcedmoves === false.B)
-      // check if it is a valid move.
-      // check if move is forced.
-
+      validDifference := (io.from % 8.U >= 5.U && !forcedmoves)
     }
-    /*
-    is(-11.S(6.W)){
-        validDifference:=false.B
-
-    }
-     */
-
   }
 
-  io.out_colorMovingFromIsCorrect := colorMovingFromIsCorrect
-  io.out_movingToEmpty := movingToEmpty
-  io.out_correctColorInBetween := correctColorInBetween
-  io.out_validDirection := validDirection
-  io.out_validDifference := validDifference
-  io.out_difference := difference
-  io.out_forcedmoves := forcedmoves
+  // Valid move if all checks pass
+  io.ValidMove := colorMovingFromIsCorrect && movingToEmpty && correctColorInBetween && validDirection && validDifference
 
-  io.ValidMove :=
-    colorMovingFromIsCorrect &&
-      movingToEmpty &&
-      correctColorInBetween &&
-      validDirection &&
-      validDifference
-
+  // Default: newboard is the same as the input board
   io.newboard := io.board
   when(io.ValidMove) {
     when(isThereAnInBetween) {
-      io.newboard(coordinateInBetween) := "b000".U
-      // This is supposed to deal with killing the thing in between.
+      io.newboard(coordinateInBetween) := sEmpty // Remove captured piece
     }
 
-    io.newboard(io.from) := "b000".U
+    io.newboard(io.from) := sEmpty
     io.newboard(io.to) := io.board(io.from)
 
     when(io.to >= 28.U && io.color === 0.U) {
-      io.newboard(io.to) := "b100".U // black king - reaches bottom row (28-31)
+      io.newboard(io.to) := sBlackKing // black king
     }
     when(io.to <= 3.U && io.color === 1.U) {
-      io.newboard(io.to) := "b010".U // white king - reaches top row (0-3)
+      io.newboard(io.to) := sWhiteKing // white king.
     }
-
   }
-
 }
