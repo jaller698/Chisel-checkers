@@ -10,7 +10,7 @@ class ChiselCheckers() extends Module {
     val colorToPut = Input(Bool()) // 0 is black, one is white.
     // End Testing IO
 
-    val mode = Input(UInt(2.W))
+    val mode = Input(UInt(2.W)) // Mode selector as UInt
     /* I have three modes:
       BUILDBOARD (00)
       PLAYMOVE   (01)
@@ -21,14 +21,17 @@ class ChiselCheckers() extends Module {
     val from = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
     val to = Input(UInt(5.W)) // A numbered place on the board (default 0-31)
     val isMoveValid = Output(Bool())
-    val ready = Output(Bool()) // player can read isMoveValid
+    val colorAtTile =
+      Output(UInt(3.W)) // The color at a given tile, used for VIEWBOARD mode
+    val valid = Output(Bool()) // Output is ready to be read
+    val ack = Input(Bool()) // Consumer acknowledges output
 
-    val colorAtTile = Output(
-      UInt(3.W) // The color at a given tile, used for VIEWBOARD mode
-    )
   })
 
+  // Board tile states
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
+  // Mode selector states
+  val sBuild :: sPlay :: sView :: Nil = Enum(3)
   val board_size = 32
 
   val board = RegInit(VecInit(Seq.tabulate(board_size) { i =>
@@ -37,38 +40,48 @@ class ChiselCheckers() extends Module {
     else sEmpty
   }))
 
-  io.isMoveValid := false.B
-  io.colorAtTile := 0.U // just for init, idk if good yet
-  io.ready := false.B
+  // Default assignments (hardware best practice)
+  // Handshake registers
+  val validReg = RegInit(false.B)
+  val isMoveValidReg = RegInit(false.B)
+  val colorAtTileReg = RegInit(sEmpty)
 
+  io.isMoveValid := isMoveValidReg
+  io.colorAtTile := colorAtTileReg
+  io.valid := validReg
+
+  // Ensure mode input is within valid range
+  require(io.mode.getWidth == 2, "io.mode must be 2 bits wide")
+  // Only allow valid mode values (0, 1, 2)
+  assert(io.mode <= 2.U, "io.mode must be 0, 1, or 2")
+
+  // Use enum for mode selection
+  // Handshake logic: only update outputs when not waiting for ack
   switch(io.mode) {
-    is("b00".U) { // buildboard.
-      when(io.reset) { // we are making a new piece, which may be either empty or standard position.
-        when(!io.resetEmpty) {
-          board := VecInit(Seq.tabulate(board_size) { i =>
-            if (i < 12) sBlack
-            else if (i >= 20) sWhite
-            else sEmpty
-          })
+    is(sBuild) {
+      when(!validReg) {
+        when(io.reset) {
+          when(!io.resetEmpty) {
+            board := VecInit(Seq.tabulate(board_size) { i =>
+              if (i < 12) sBlack
+              else if (i >= 20) sWhite
+              else sEmpty
+            })
+          }.otherwise {
+            board := VecInit(Seq.fill(board_size)(sEmpty))
+          }
+          isMoveValidReg := false.B
+          colorAtTileReg := sEmpty
+          validReg := true.B
         }.otherwise {
-          board := VecInit(Seq.tabulate(board_size) { i =>
-            sEmpty
-          })
+          board(io.placePiece) := Mux(io.colorToPut, sWhite, sBlack)
+          isMoveValidReg := false.B
+          colorAtTileReg := sEmpty
+          validReg := true.B
         }
-      }.otherwise { // We are trying to place a piece.
-        when(io.colorToPut) {
-          board(io.placePiece) := sWhite
-        }.otherwise {
-          board(io.placePiece) := sBlack
-        }
-
       }
-
     }
-
-    is("b01".U) { // PLAYBOARD
-
-      // Use the black move validator
+    is(sPlay) {
       val moveValidator = Module(new MoveValidator())
       moveValidator.io.board := board
       moveValidator.io.from := io.from
@@ -76,20 +89,28 @@ class ChiselCheckers() extends Module {
       moveValidator.io.color := 0.U
       // I've set 0 to be black. Probably a bad decision hehe
 
-      io.isMoveValid := moveValidator.io.ValidMove
-
-      when(moveValidator.io.ValidMove) {
-        // update the register with the validator's new board
-        board := moveValidator.io.newboard
+      when(!validReg) {
+        isMoveValidReg := moveValidator.io.ValidMove
+        colorAtTileReg := sEmpty
+        validReg := true.B
+        when(moveValidator.io.ValidMove) {
+          board := moveValidator.io.newboard
+        }
       }
     }
-    is("b10".U) { // viewboard.
-
-      io.colorAtTile := board(io.from)
-
+    is(sView) {
+      when(!validReg) {
+        colorAtTileReg := board(io.from)
+        isMoveValidReg := false.B
+        validReg := true.B
+      }
     }
   }
 
+  // Clear validReg when ack is received
+  when(validReg && io.ack) {
+    validReg := false.B
+  }
 }
 
 object ChiselCheckers extends App {
