@@ -588,4 +588,28 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
     }
   }
 
+  it should "allow you to go from 22 to 13 if there is a king in between" in {
+    test(new MoveValidator()) { dut =>
+      for (i <- 0 to 31) {
+        dut.io.board(i).poke("b000".U)
+      }
+      dut.io.color.poke(1.U)
+      dut.io.board(22).poke("b001".U)
+      dut.io.board(17).poke("b100".U)
+
+      dut.io.from.poke(22)
+      dut.io.to.poke(13)
+      dut.io.ValidMove
+        .expect(true.B, "can move from 22 to 13 over the enemy king on 17.")
+      for (i <- 0 to 31) {
+        if (i == 13) {
+          dut.io.newboard(i).expect("b001".U)
+        } else {
+          dut.io.newboard(i).expect("b000".U, s"$i should be empty")
+        }
+      }
+    }
+
+  }
+
 }
