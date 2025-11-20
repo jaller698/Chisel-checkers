@@ -7,6 +7,7 @@ import chisel3.util._
 class BoardEval1() extends Module {
   val io = IO(new Bundle {
     val In = Input(Vec(32, UInt(3.W))) // This is the most basic version.
+    val color = Input(UInt(1.W))
 
     val score = Output(SInt(8.W)) // idk how big is should be yet.
 
@@ -31,6 +32,11 @@ class BoardEval1() extends Module {
   }
 
   // We just do a treeReduce where we have a function in it.
-  io.score := v.reduceTree((x, y) => x + y)
+  val naivescore = v.reduceTree((x, y) => x + y)
+
+  io.score := naivescore
+  // The reason that this one doesn't use color is because it greedily just captures. That is all that it does.
+  // What the board eval is supposed to do is to evaluate the board for white, given that the person moving is moving.
+  // Which in this particular evaluation doesn't matter that much.
 
 }
