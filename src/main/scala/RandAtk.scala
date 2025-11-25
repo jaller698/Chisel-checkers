@@ -24,7 +24,7 @@ class RandOpp extends Module {
     else sEmpty
   }))
   val movedPiece = RegInit(0.U(5.W))
-  val moveAgain = RegInit(false.B)
+  val moveAgain = RegInit(true.B)
 
   io.boardWrite:=boardTMP
   io.ready:=false.B
@@ -44,11 +44,7 @@ class RandOpp extends Module {
       boardTMP:=oppFirst.io.boardWrite
       movedPiece:=oppFirst.io.movedOne
       
-      when(oppFirst.io.movedOne===33.U){
-        stateReg:=sDone
-      }.otherwise{
-        stateReg:=sEATK
-      }
+      stateReg:=sDone
     }
     is(sEATK){
       val oppEx = Module(new ExtraAttack())
@@ -59,19 +55,16 @@ class RandOpp extends Module {
       boardTMP:=oppEx.io.boardWrite
       movedPiece:=oppEx.io.movedOne
       moveAgain:=oppEx.io.moved
+  
+      stateReg:=sDone
       
-      when(oppEx.io.moved===false.B && oppEx.io.movedOne===33.U){
-        stateReg:=sDone
-      }.otherwise{
-        stateReg:=sEATK
-      }
     }
     is(sDone){
 
-      // when(moveAgain===true.B){
-      //   stateReg:=sEATK
-      //   moveAgain:=false.B
-      // }.otherwise{
+      when(moveAgain===true.B){
+        stateReg:=sEATK
+        moveAgain:=false.B
+      }.otherwise{
         io.ready:=true.B
         
         when(io.req===false.B){
@@ -80,7 +73,7 @@ class RandOpp extends Module {
         }
       }
     }
-  // }
+  }
 
  
 }
