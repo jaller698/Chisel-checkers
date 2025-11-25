@@ -97,7 +97,7 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
         else sEmpty
       }
 
-
+      
       for (i <- 0 to 31) {
         dut.io.board(i).poke(testVectors(i))
       }
@@ -112,5 +112,49 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
       
     }
   }
+
+    it should "Wholething" in {
+    test(new RandOpp()) { dut =>
+      val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil =
+        Enum(5)
+
+      val testVectors = Seq.tabulate(32) { i =>
+        if (i == 22) sBlack
+        else if (i == 14) sBlack
+        else if (i == 25) sWhite
+        else sEmpty
+      }
+
+      val testAtks = Seq.tabulate(128) { i =>
+        if (i == 103) true.B //21*4 +1 (1 is up left, 3 is up right)
+        else false.B
+      }
+
+      for (i <- 0 to 31) {
+        dut.io.board(i).poke(testVectors(i))
+      }
+      for (i <- 0 to 127) {
+        dut.io.whereWeCanMove(i).poke(testAtks(i))
+      }
+      
+      dut.io.atkPres.poke(true.B)
+      dut.io.req.poke(true.B)
+
+      while (!dut.io.ready.peek().litToBoolean) {dut.clock.step(1)}
+
+      
+      dut.io.boardWrite(25).expect(sEmpty)
+      dut.io.boardWrite(22).expect(sEmpty)
+      dut.io.boardWrite(18).expect(sEmpty)
+      dut.io.boardWrite(14).expect(sEmpty)
+      dut.io.boardWrite(9).expect(sWhite)      
+      dut.io.req.poke(false.B)
+      dut.clock.step(1)
+      dut.io.ready.expect(false.B)
+    }
+  }
+
+
+
 
 }

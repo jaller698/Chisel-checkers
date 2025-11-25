@@ -1,6 +1,79 @@
 import chisel3._
 import chisel3.util._
 
+class RandOpp extends Module {
+  val io = IO(new Bundle {
+    val atkPres = Input(Bool())
+    val board = Input(Vec(32, UInt(3.W)))
+    val whereWeCanMove = Input(Vec(4 * 32, Bool()))
+    val req = Input(Bool())
+
+    val boardWrite = Output(Vec(32, UInt(3.W)))
+    val ready = Output(Bool())
+    
+  })
+  val sIdle::sFATK::sEATK::sDone::Nil = Enum(4)
+  
+  val stateReg=RegInit(sIdle)
+  
+  val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
+
+  val boardTMP = RegInit(VecInit(Seq.tabulate(32) { i =>
+    if (i < 12) sBlack
+    else if (i >= 20) sWhite
+    else sEmpty
+  }))
+  val movedPiece = RegInit(0.U(5.W))
+  
+  io.boardWrite:=boardTMP
+  io.ready:=false.B
+  switch(stateReg){
+    is(sIdle){
+      when(io.req){
+        stateReg:=sFATK
+      }
+    }
+    is(sFATK){
+      val oppFirst = Module(new RandomAttack())
+      oppFirst.io.AtkPresent:= io.atkPres
+      oppFirst.io.board:= io.board
+      oppFirst.io.whereWeCanMove:= io.whereWeCanMove
+      boardTMP:=oppFirst.io.boardWrite
+      movedPiece:=oppFirst.io.movedOne
+      stateReg:=sEATK
+      
+    }
+    is(sEATK){
+      val oppEx = Module(new ExtraAttack())
+
+      oppEx.io.board:=boardTMP
+      oppEx.io.piece:=movedPiece
+
+      boardTMP:=oppEx.io.boardWrite
+      movedPiece:=oppEx.io.movedOne
+      
+      when(oppEx.io.moved===true.B){
+        stateReg:=sEATK
+      }.otherwise{
+        
+        stateReg:=sDone
+      }
+    }
+    is(sDone){
+      io.ready:=true.B
+      
+      when(io.req===false.B){
+        stateReg:=sIdle
+        io.ready:=false.B
+      }
+    }
+
+  }
+
+ 
+}
+
+
 class RandomAttack extends Module {
 
   private def row(i: Int) = i / 4
@@ -22,6 +95,7 @@ class RandomAttack extends Module {
     val AtkPresent = Input(Bool())
     val board = Input(Vec(32, UInt(3.W)))
     val whereWeCanMove = Input(Vec(4 * 32, Bool()))
+
     val boardWrite = Output(Vec(32, UInt(3.W)))
     val movedOne = Output(UInt(5.W))
   })
@@ -108,9 +182,12 @@ class ExtraAttack extends Module {
   val io = IO(new Bundle {
     val board = Input(Vec(32, UInt(3.W)))
     val piece = Input(UInt(5.W))
+
     val boardWrite = Output(Vec(32, UInt(3.W)))
     val moved = Output(Bool())
+    val movedOne = Output(UInt(5.W))
   })
+  io.movedOne:=0.U
   io.moved := false.B
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
 
@@ -139,6 +216,7 @@ class ExtraAttack extends Module {
           boardTMP(io.piece - 4.U) := sEmpty
           boardTMP(io.piece - 9.U) := sWhite
           io.moved := true.B
+          io.movedOne:=io.piece-9.U
         }.elsewhen(
           io.board(io.piece - 3.U) === sBlack && io.board(
             io.piece - 7.U
@@ -148,6 +226,7 @@ class ExtraAttack extends Module {
           boardTMP(io.piece - 3.U) := sEmpty
           boardTMP(io.piece - 7.U) := sWhite
           io.moved := true.B
+          io.movedOne:=io.piece-7.U
         }
 
       }.elsewhen(rola - 2.U >= 0.U) { // can only go left
@@ -160,6 +239,7 @@ class ExtraAttack extends Module {
           boardTMP(io.piece - 4.U) := sEmpty
           boardTMP(io.piece - 9.U) := sWhite
           io.moved := true.B
+          io.movedOne:=io.piece-9.U
         }
 
       }.otherwise { // can only go right
@@ -172,6 +252,7 @@ class ExtraAttack extends Module {
           boardTMP(io.piece - 3.U) := sEmpty
           boardTMP(io.piece - 7.U) := sWhite
           io.moved := true.B
+          io.movedOne:=io.piece-7.U
         }
       }
     }
@@ -189,6 +270,7 @@ class ExtraAttack extends Module {
           boardTMP(io.piece - 5.U) := sEmpty
           boardTMP(io.piece - 9.U) := sWhite
           io.moved := true.B
+          io.movedOne:=io.piece-9.U
         }.elsewhen(
           io.board(io.piece - 4.U) === sBlack && io.board(
             io.piece - 7.U
@@ -198,6 +280,7 @@ class ExtraAttack extends Module {
           boardTMP(io.piece - 4.U) := sEmpty
           boardTMP(io.piece - 7.U) := sWhite
           io.moved := true.B
+          io.movedOne:=io.piece-7.U
         }
 
       }.elsewhen(rola - 2.U >= 0.U) { // can only go left
@@ -210,6 +293,7 @@ class ExtraAttack extends Module {
           boardTMP(io.piece - 5.U) := sEmpty
           boardTMP(io.piece - 9.U) := sWhite
           io.moved := true.B
+          io.movedOne:=io.piece-9.U
         }
 
       }.otherwise { // can only go right
@@ -221,6 +305,7 @@ class ExtraAttack extends Module {
           boardTMP(io.piece - 4.U) := sEmpty
           boardTMP(io.piece - 7.U) := sWhite
           io.moved := true.B
+          io.movedOne:=io.piece-7.U
         }
       }
 
