@@ -134,6 +134,65 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
 
     }
   }
+ it should "check that we can force to move from a specific place" in {
+    test(new Opponent()) { dut =>
+      for (i <- 0 to 31) {
+        dut.io.In(i).poke("b000".U)
+      }
+      dut.io.In(22).poke("b001".U)//white pawn
+      dut.io.In(17).poke("b100".U)//black king
+      dut.io.In(10).poke("b001".U)//white pawn
+      dut.io.In(6).poke("b100".U)//black king
+
+      dut.io.hastomakespecificmove.poke(true.B)
+      dut.io.specificallyfromwhere.poke(10.U)//doesnt matter because it is false
+
+      dut.io.statusIn.poke(true.B)
+
+      var counter = 0
+      while (dut.io.statusOut.peek().litToBoolean == false & counter < 400) {
+
+        dut.clock.step()
+        counter += 1
+      }
+      dut.io.statusOut.expect(true.B)
+
+      // print(dut.io.from,dut.io.to,dut.io.stillMoving)
+      dut.io.from
+        .expect(10, "should move from 10 because that it the only possibility")
+      dut.io.stillMoving.expect(false.B, "there isn't more to do from here")
+
+    }
+  }
+
+  it should "other test" in {
+    test(new Opponent()) { dut =>
+      for (i <- 0 to 31) {
+        dut.io.In(i).poke("b000".U)
+      }
+      dut.io.In(22).poke("b001".U)//white pawn
+      dut.io.In(17).poke("b100".U)//black king
+      dut.io.In(10).poke("b001".U)//white pawn
+
+      dut.io.hastomakespecificmove.poke(true.B)
+      dut.io.specificallyfromwhere.poke(22.U)//doesnt matter because it is false
+
+      dut.io.statusIn.poke(true.B)
+
+      var counter = 0
+      while (dut.io.statusOut.peek().litToBoolean == false & counter < 400) {
+
+        dut.clock.step()
+        counter += 1
+      }
+      dut.io.statusOut.expect(true.B)
+
+      dut.io.from.expect(22.U,s"should move from 22")
+       println(s"we are now investigating ${dut.io.from.peek().litValue} to ${dut.io.to.peek().litValue}\n")
+      // print(dut.io.from,dut.io.to,dut.io.stillMoving)
+      
+    }
+  }
 
   // do a random move.
 

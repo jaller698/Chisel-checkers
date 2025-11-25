@@ -752,4 +752,29 @@ class movevalidatortest extends AnyFlatSpec with ChiselScalatestTester {
     }
   }
 
+   it should "be able to move from 10 with white." in {
+    test(new MoveValidator()) { dut =>
+      for (i <- 0 to 31) {
+        dut.io.board(i).poke("b000".U)
+      }
+      dut.io.color.poke(1.U)
+           dut.io.board(22).poke("b001".U)//white pawn
+      dut.io.board(17).poke("b100".U)//black king
+      dut.io.board(10).poke("b001".U)//white pawn
+
+      val scalaBoard = convertToScalaBoard(dut.io.board)
+
+      dut.io.from.poke(10)
+      dut.io.to.poke(6)
+      val expectedValid = isMoveValid(
+        13,
+        6,
+        scalaBoard,
+        isWhiteTurn = true
+      ) // arbitrary destination
+      dut.io.ValidMove
+        .expect(expectedValid.B, "can move from 10 to 6")
+    }
+  }
+
 }
