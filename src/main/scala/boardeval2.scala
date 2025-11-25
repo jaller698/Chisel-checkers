@@ -21,7 +21,7 @@ class boardeval2() extends Module {
   }
 
   for (i <- 0 to 31) {
-    val row_pos = i.U / 4.U  // Calculate row as hardware value
+    val row_pos = i.U / 4.U // Calculate row as hardware value
     val material_score = WireDefault(0.S(5.W))
     val position_score = WireDefault(0.S(5.W))
 
@@ -57,7 +57,7 @@ class boardeval2() extends Module {
         position_score := 0.S
       }
     }
-    // white/black Kings don't gain position bonus 
+    // white/black Kings don't gain position bonus
 
     v(i) := material_score + position_score
   }
