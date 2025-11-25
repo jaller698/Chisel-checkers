@@ -77,8 +77,8 @@ class MoveValidator extends Module {
 
   switch(difference) {
     is(9.S(6.W)) { // jump right forward
-      validDifference := (io.from(1,0) =/= 3.U)
-      when(io.from(2,0) <= 4.U) {
+      validDifference := (io.from(1, 0) =/= 3.U)
+      when(io.from(2, 0) <= 4.U) {
         coordinateInBetween := io.from + 5.U
       }.otherwise {
         coordinateInBetween := io.from + 4.U
@@ -86,8 +86,8 @@ class MoveValidator extends Module {
       isThereAnInBetween := true.B
     }
     is(7.S(6.W)) { // jump left forward
-      validDifference := (io.from(1,0) =/= 0.U)
-      when(io.from(2,0) <= 4.U) {
+      validDifference := (io.from(1, 0) =/= 0.U)
+      when(io.from(2, 0) <= 4.U) {
         coordinateInBetween := io.from + 4.U
       }.otherwise {
         coordinateInBetween := io.from + 3.U
@@ -96,7 +96,7 @@ class MoveValidator extends Module {
     }
     is(3.S(6.W)) { // step left forward
       isThereAnInBetween := false.B
-      validDifference := (io.from(2,0) >= 5.U && !forcedmoves)
+      validDifference := (io.from(2, 0) >= 5.U && !forcedmoves)
     }
     is(4.S(6.W)) { // step right forward
       isThereAnInBetween := false.B
@@ -104,11 +104,11 @@ class MoveValidator extends Module {
     }
     is(5.S(6.W)) { // step far right forward
       isThereAnInBetween := false.B
-      validDifference := (io.from(2,0) < 3.U && !forcedmoves)
+      validDifference := (io.from(2, 0) < 3.U && !forcedmoves)
     }
     is(-9.S(6.W)) { // jump right backward
-      validDifference := (io.from(1,0) =/= 0.U)
-      when(io.from(2,0) <= 4.U) {
+      validDifference := (io.from(1, 0) =/= 0.U)
+      when(io.from(2, 0) <= 4.U) {
         coordinateInBetween := io.from - 4.U
       }.otherwise {
         coordinateInBetween := io.from - 5.U
@@ -116,8 +116,8 @@ class MoveValidator extends Module {
       isThereAnInBetween := true.B
     }
     is(-7.S(6.W)) { // jump left backward
-      validDifference := (io.from(1,0) =/= 3.U)
-      when(io.from(2,0) <= 4.U) {
+      validDifference := (io.from(1, 0) =/= 3.U)
+      when(io.from(2, 0) <= 4.U) {
         coordinateInBetween := io.from - 3.U
       }.otherwise {
         coordinateInBetween := io.from - 4.U
@@ -126,7 +126,7 @@ class MoveValidator extends Module {
     }
     is(-3.S(6.W)) { // step left backward
       isThereAnInBetween := false.B
-      validDifference := (io.from(2,0) <= 5.U && !forcedmoves)
+      validDifference := (io.from(2, 0) <= 5.U && !forcedmoves)
     }
     is(-4.S(6.W)) { // step right backward
       isThereAnInBetween := false.B
@@ -134,7 +134,7 @@ class MoveValidator extends Module {
     }
     is(-5.S(6.W)) { // step far right backward
       isThereAnInBetween := false.B
-      validDifference := (io.from(2,0) >= 5.U && !forcedmoves)
+      validDifference := (io.from(2, 0) >= 5.U && !forcedmoves)
     }
   }
 

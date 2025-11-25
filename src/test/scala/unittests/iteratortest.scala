@@ -15,7 +15,9 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.In(17).poke("b100".U)
       dut.io.statusIn.poke(true.B)
       dut.io.hastomakespecificmove.poke(false.B)
-                  dut.io.specificallyfromwhere.poke(0.U)//doesnt matter because it is false
+      dut.io.specificallyfromwhere.poke(
+        0.U
+      ) // doesnt matter because it is false
 
       var counter = 0
       while (dut.io.statusOut.peek().litToBoolean == false & counter < 400) {
@@ -49,9 +51,10 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       for (i <- 0 to 31) {
         dut.io.In(i).poke("b000".U)
       }
-            dut.io.hastomakespecificmove.poke(false.B)
-                        dut.io.specificallyfromwhere.poke(0.U)//doesnt matter because it is false
-
+      dut.io.hastomakespecificmove.poke(false.B)
+      dut.io.specificallyfromwhere.poke(
+        0.U
+      ) // doesnt matter because it is false
 
       dut.io.In(9).poke("b010".U) // white king
       dut.io.In(13).poke("b100".U) // black king
@@ -86,9 +89,10 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.In(15).poke("b001".U)
       dut.io.In(18).poke("b011".U)
       dut.io.statusIn.poke(true.B)
-            dut.io.hastomakespecificmove.poke(false.B)
-                        dut.io.specificallyfromwhere.poke(0.U)//doesnt matter because it is false
-
+      dut.io.hastomakespecificmove.poke(false.B)
+      dut.io.specificallyfromwhere.poke(
+        0.U
+      ) // doesnt matter because it is false
 
       var counter = 0
       while (dut.io.statusOut.peek().litToBoolean == false & counter < 400) {
@@ -115,8 +119,10 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.In(28).poke("b010".U)
 
       dut.io.statusIn.poke(true.B)
-            dut.io.hastomakespecificmove.poke(false.B)
-            dut.io.specificallyfromwhere.poke(0.U)//doesnt matter because it is false
+      dut.io.hastomakespecificmove.poke(false.B)
+      dut.io.specificallyfromwhere.poke(
+        0.U
+      ) // doesnt matter because it is false
 
       var counter = 0
       while (dut.io.statusOut.peek().litToBoolean == false & counter < 400) {
@@ -134,18 +140,20 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
 
     }
   }
- it should "check that we can force to move from a specific place" in {
+  it should "check that we can force to move from a specific place" in {
     test(new Opponent()) { dut =>
       for (i <- 0 to 31) {
         dut.io.In(i).poke("b000".U)
       }
-      dut.io.In(22).poke("b001".U)//white pawn
-      dut.io.In(17).poke("b100".U)//black king
-      dut.io.In(10).poke("b001".U)//white pawn
-      dut.io.In(6).poke("b100".U)//black king
+      dut.io.In(22).poke("b001".U) // white pawn
+      dut.io.In(17).poke("b100".U) // black king
+      dut.io.In(10).poke("b001".U) // white pawn
+      dut.io.In(6).poke("b100".U) // black king
 
       dut.io.hastomakespecificmove.poke(true.B)
-      dut.io.specificallyfromwhere.poke(10.U)//doesnt matter because it is false
+      dut.io.specificallyfromwhere.poke(
+        10.U
+      ) // doesnt matter because it is false
 
       dut.io.statusIn.poke(true.B)
 
@@ -170,12 +178,14 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       for (i <- 0 to 31) {
         dut.io.In(i).poke("b000".U)
       }
-      dut.io.In(22).poke("b001".U)//white pawn
-      dut.io.In(17).poke("b100".U)//black king
-      dut.io.In(10).poke("b001".U)//white pawn
+      dut.io.In(22).poke("b001".U) // white pawn
+      dut.io.In(17).poke("b100".U) // black king
+      dut.io.In(10).poke("b001".U) // white pawn
 
       dut.io.hastomakespecificmove.poke(true.B)
-      dut.io.specificallyfromwhere.poke(22.U)//doesnt matter because it is false
+      dut.io.specificallyfromwhere.poke(
+        22.U
+      ) // doesnt matter because it is false
 
       dut.io.statusIn.poke(true.B)
 
@@ -187,10 +197,12 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       }
       dut.io.statusOut.expect(true.B)
 
-      dut.io.from.expect(22.U,s"should move from 22")
-       println(s"we are now investigating ${dut.io.from.peek().litValue} to ${dut.io.to.peek().litValue}\n")
+      dut.io.from.expect(22.U, s"should move from 22")
+      println(
+        s"we are now investigating ${dut.io.from.peek().litValue} to ${dut.io.to.peek().litValue}\n"
+      )
       // print(dut.io.from,dut.io.to,dut.io.stillMoving)
-      
+
     }
   }
 

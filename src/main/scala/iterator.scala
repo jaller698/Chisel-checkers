@@ -39,8 +39,8 @@ class Opponent extends Module {
     val from = Output(UInt(5.W))
     val to = Output(UInt(5.W))
 
-    val hastomakespecificmove=Input(Bool())
-    val specificallyfromwhere=Input(UInt(5.W))
+    val hastomakespecificmove = Input(Bool())
+    val specificallyfromwhere = Input(UInt(5.W))
 
     val stillMoving = Output(Bool())
 
@@ -90,7 +90,7 @@ class Opponent extends Module {
   // dummy values
 
   io.statusOut := (state === "b10".U)
-  val currentMax=RegInit(0.U(9.W))
+  val currentMax = RegInit(0.U(9.W))
   val current_from = RegInit(0.U(5.W))
   val current_to = RegInit(0.U(5.W))
   val current_still_moving = RegInit(false.B)
@@ -107,7 +107,7 @@ class Opponent extends Module {
   io.from := current_from
 
 //used in state b01:
-  val from_for_now =(counter_index / 10.U )(4,0)
+  val from_for_now = (counter_index / 10.U)(4, 0)
   val to_for_now = WireDefault(0.U(5.W))
 
   val toadd = WireDefault(0.S) // I could specify the wires here if I wished.
@@ -127,12 +127,12 @@ class Opponent extends Module {
         next_state := "b01".U
         max_val := -100.S
         // max_val= minus infinite.
-        when(io.hastomakespecificmove===true.B){
-          counter_index:=io.specificallyfromwhere*10.U
-          currentMax:=io.specificallyfromwhere*10.U+9.U
-        }.otherwise{
-          counter_index:=0.U
-          currentMax:=319.U
+        when(io.hastomakespecificmove === true.B) {
+          counter_index := io.specificallyfromwhere * 10.U
+          currentMax := io.specificallyfromwhere * 10.U + 9.U
+        }.otherwise {
+          counter_index := 0.U
+          currentMax := 319.U
         }
 
         /*
@@ -150,8 +150,10 @@ class Opponent extends Module {
     is("b01".U) { // calculating.
 
       // from index, figure out what to check.
-       printf(p"Move from $counter_index to $to_for_now, " +
-         "which is a valid move ${movevalidator.io.ValidMove} \n \n")
+      printf(
+        p"Move from $counter_index to $to_for_now, " +
+          "which is a valid move ${movevalidator.io.ValidMove} \n \n"
+      )
 
       switch(counter_index % 10.U) {
         is(0.U) {
@@ -250,9 +252,9 @@ class Opponent extends Module {
       when(counter_index >= currentMax) {
         next_state := "b10".U
       }
-      when(io.In(from_for_now)==="b000".U&&counter_index % 10.U===0.U){
+      when(io.In(from_for_now) === "b000".U && counter_index % 10.U === 0.U) {
         counter_index := counter_index + 10.U
-      }.otherwise{
+      }.otherwise {
         counter_index := counter_index + 1.U
       }
 
