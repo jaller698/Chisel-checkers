@@ -24,9 +24,11 @@ class RandOpp extends Module {
     else sEmpty
   }))
   val movedPiece = RegInit(0.U(5.W))
-  
+  val moveAgain = RegInit(false.B)
+
   io.boardWrite:=boardTMP
   io.ready:=false.B
+
   switch(stateReg){
     is(sIdle){
       when(io.req){
@@ -38,10 +40,15 @@ class RandOpp extends Module {
       oppFirst.io.AtkPresent:= io.atkPres
       oppFirst.io.board:= io.board
       oppFirst.io.whereWeCanMove:= io.whereWeCanMove
+      
       boardTMP:=oppFirst.io.boardWrite
       movedPiece:=oppFirst.io.movedOne
-      stateReg:=sEATK
       
+      when(oppFirst.io.movedOne===33.U){
+        stateReg:=sDone
+      }.otherwise{
+        stateReg:=sEATK
+      }
     }
     is(sEATK){
       val oppEx = Module(new ExtraAttack())
@@ -51,24 +58,29 @@ class RandOpp extends Module {
 
       boardTMP:=oppEx.io.boardWrite
       movedPiece:=oppEx.io.movedOne
+      moveAgain:=oppEx.io.moved
       
-      when(oppEx.io.moved===true.B){
-        stateReg:=sEATK
-      }.otherwise{
-        
+      when(oppEx.io.moved===false.B && oppEx.io.movedOne===33.U){
         stateReg:=sDone
+      }.otherwise{
+        stateReg:=sEATK
       }
     }
     is(sDone){
-      io.ready:=true.B
-      
-      when(io.req===false.B){
-        stateReg:=sIdle
-        io.ready:=false.B
+
+      // when(moveAgain===true.B){
+      //   stateReg:=sEATK
+      //   moveAgain:=false.B
+      // }.otherwise{
+        io.ready:=true.B
+        
+        when(io.req===false.B){
+          stateReg:=sIdle
+          io.ready:=false.B
+        }
       }
     }
-
-  }
+  // }
 
  
 }
@@ -187,8 +199,7 @@ class ExtraAttack extends Module {
     val moved = Output(Bool())
     val movedOne = Output(UInt(5.W))
   })
-  io.movedOne:=0.U
-  io.moved := false.B
+ 
   val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil = Enum(5)
 
   val boardTMP = RegInit(VecInit(Seq.tabulate(32) { i =>
@@ -199,6 +210,9 @@ class ExtraAttack extends Module {
 
   boardTMP := io.board
   io.boardWrite := boardTMP
+  io.movedOne:=33.U
+  io.moved := false.B
+
 
   val rowa = (io.piece / 4.U)
   val rola = ((io.piece / 4.U) + 1.U) % 2.U + (io.piece % 4.U)+(io.piece % 4.U)
