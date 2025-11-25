@@ -28,7 +28,7 @@ class ChiselCheckers extends Module {
   // Op selector states
   val sBuild :: sPlay :: sView :: Nil = Enum(3)
   // State machine states
-  val sIdle :: sProcessing :: sOutput :: Nil = Enum(3)
+  val sIdle :: sPlayer :: sOpponent :: sOutput :: Nil = Enum(4)
   val board_size = 32
 
   val board = RegInit(VecInit(Seq.tabulate(board_size) { i =>
@@ -52,10 +52,10 @@ class ChiselCheckers extends Module {
     is(sIdle) {
       io.valid := false.B
       when(io.op === sBuild || io.op === sPlay || io.op === sView) {
-        stateReg := sProcessing
+        stateReg := sPlayer
       }
     }
-    is(sProcessing) {
+    is(sPlayer) {
       switch(io.op) {
         is(sBuild) {
           when(io.reset) {
@@ -75,6 +75,7 @@ class ChiselCheckers extends Module {
             isMoveValidReg := false.B
             colorAtTileReg := sEmpty
           }
+          stateReg := sOutput
         }
         is(sPlay) {
           val moveValidator = Module(new MoveValidator())
@@ -90,14 +91,27 @@ class ChiselCheckers extends Module {
           isMoveValidReg := moveValidator.io.ValidMove
           colorAtTileReg := sEmpty
           when(moveValidator.io.ValidMove) {
+            stateReg := sOpponent
             board := moveValidator.io.newboard
+          }.otherwise {
+            stateReg := sOutput
           }
         }
         is(sView) {
+          stateReg := sOutput
           colorAtTileReg := board(io.from)
           isMoveValidReg := false.B
         }
       }
+    }
+    is(sOpponent) {
+      val legalMovesForWhite = Module(new LegalMovesForWhite())
+      legalMovesForWhite.io.In := board
+      val randopponent = Module(new RandomAttack)
+      randopponent.io.board := board
+      randopponent.io.AtkPresent := legalMovesForWhite.io.forcedMoves
+      randopponent.io.whereWeCanMove := legalMovesForWhite.io.whereWeCanMove
+      board := randopponent.io.boardWrite
       stateReg := sOutput
     }
     is(sOutput) {

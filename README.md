@@ -1,7 +1,6 @@
+# Chisel Checkers
 [![CI Chisel tests](https://github.com/jaller698/RISC-V-interpreter/actions/workflows/scala.yml/badge.svg)](https://github.com/jaller698/RISC-V-interpreter/actions/workflows/scala.yml)
 [![Scala format check](https://github.com/jaller698/Chisel-checkers/actions/workflows/scalafmt.yml/badge.svg)](https://github.com/jaller698/Chisel-checkers/actions/workflows/scalafmt.yml)
-
-# Chisel Checkers
 
 A hardware implementation of the classic game of Checkers (Draughts) written in [Chisel](https://www.chisel-lang.org/), a hardware construction language embedded in Scala. This project demonstrates digital logic design principles by implementing game logic, move validation, and board state management entirely in hardware.
 
@@ -32,9 +31,9 @@ The design targets FPGA implementation and has been synthesized for the Xilinx A
    ```bash
    sbt --version
    ```
-   
+
    **If sbt is not installed or you need to update it:**
-   
+
    **Linux (Debian/Ubuntu):**
    ```bash
    echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | sudo tee /etc/apt/sources.list.d/sbt.list
@@ -52,25 +51,25 @@ The design targets FPGA implementation and has been synthesized for the Xilinx A
    sudo mv sbt-rpm.repo /etc/yum.repos.d/
    sudo yum install sbt
    ```
-   
+
    **macOS:**
    ```bash
    brew install sbt
    ```
-   
+
    **Windows:**
    ```powershell
    # Option 1 - MSI Installer (recommended):
    # Download from: https://www.scala-sbt.org/download.html
    # Run the .msi installer and follow the installation wizard
-   
+
    # Option 2 - Chocolatey package manager:
    choco install sbt
-   
+
    # Option 3 - Scoop package manager:
    scoop install sbt
    ```
-   
+
    For more installation options and detailed instructions, visit: https://www.scala-sbt.org/download.html
 
 #### 3. **Chisel Dependencies**: Automatically managed by sbt (see [build.sbt](build.sbt))
@@ -124,17 +123,18 @@ sbt run
 
 This produces [`ChiselCheckers.sv`](ChiselCheckers.sv) in the project root.
 
-### Interactive Testing
+### Playing the Game
 
 Run the interactive test to manually play the game:
 
 ```bash
-sbt "testOnly *PlayerIOTest -- -n interactive"
+sbt "testOnly PlayerIOTest"
 ```
 
 This allows you to:
 - View the current board state
 - Enter moves (from/to positions 0-31)
+- Have the hardware play against you
 - See move validation results in real-time
 
 ### FPGA Synthesis
@@ -271,7 +271,6 @@ Tests are organized in [`src/test/scala/`](src/test/scala/):
 - **[`golden_model/`](src/test/scala/golden_model/)**: Reference implementation
   - [`CheckerRules.scala`](src/test/scala/golden_model/CheckerRules.scala): Software reference for validation
   - [`CheckerRulesTest.scala`](src/test/scala/golden_model/CheckerRulesTest.scala): Reference model tests
-
 
 ## Development
 
