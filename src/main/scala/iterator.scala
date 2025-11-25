@@ -39,6 +39,9 @@ class Opponent extends Module {
     val from = Output(UInt(5.W))
     val to = Output(UInt(5.W))
 
+    val hastomakespecificmove=Input(Bool())
+    val specificallyfromwhere=Input(UInt(5.W))
+
     val stillMoving = Output(Bool())
 
     // debug:
@@ -87,7 +90,7 @@ class Opponent extends Module {
   // dummy values
 
   io.statusOut := (state === "b10".U)
-
+  val currentMax=RegInit(0.U(9.W))
   val current_from = RegInit(0.U(5.W))
   val current_to = RegInit(0.U(5.W))
   val current_still_moving = RegInit(false.B)
@@ -123,6 +126,13 @@ class Opponent extends Module {
       when(io.statusIn === 1.U) {
         next_state := "b01".U
         max_val := -100.S
+        when(io.hastomakespecificmove){
+          counter_index:=io.specificallyfromwhere*10.U
+          currentMax:=counter_index+9.U
+        }.otherwise{
+          counter_index:=0.U
+          currentMax:=319.U
+        }
         // max_val= minus infinite.
 
         /*
@@ -234,7 +244,7 @@ class Opponent extends Module {
         max_val := boardeval.io.score
       }
 
-      when(counter_index === 319.U) {
+      when(counter_index === currentMax) {
         next_state := "b10".U
       }
       counter_index := counter_index + 1.U

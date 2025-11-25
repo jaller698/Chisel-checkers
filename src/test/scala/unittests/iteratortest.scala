@@ -14,6 +14,9 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.In(22).poke("b001".U)
       dut.io.In(17).poke("b100".U)
       dut.io.statusIn.poke(true.B)
+      dut.io.hastomakespecificmove.poke(false.B)
+                  dut.io.specificallyfromwhere.poke(0.U)//doesnt matter because it is false
+
       var counter = 0
       while (dut.io.statusOut.peek().litToBoolean == false & counter < 400) {
 
@@ -46,6 +49,10 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       for (i <- 0 to 31) {
         dut.io.In(i).poke("b000".U)
       }
+            dut.io.hastomakespecificmove.poke(false.B)
+                        dut.io.specificallyfromwhere.poke(0.U)//doesnt matter because it is false
+
+
       dut.io.In(9).poke("b010".U) // white king
       dut.io.In(13).poke("b100".U) // black king
       dut.io.In(5).poke("b011".U) // black pawn
@@ -71,7 +78,7 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
     }
   }
 
-  it should "not try to go backwards with a white pawn NOT WRITTEN" in {
+  it should "not try to go backwards with a white pawn" in {
     test(new Opponent()) { dut =>
       for (i <- 0 to 31) {
         dut.io.In(i).poke("b000".U)
@@ -79,6 +86,10 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.In(15).poke("b001".U)
       dut.io.In(18).poke("b011".U)
       dut.io.statusIn.poke(true.B)
+            dut.io.hastomakespecificmove.poke(false.B)
+                        dut.io.specificallyfromwhere.poke(0.U)//doesnt matter because it is false
+
+
       var counter = 0
       while (dut.io.statusOut.peek().litToBoolean == false & counter < 400) {
 
@@ -104,6 +115,9 @@ class iteratortest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.In(28).poke("b010".U)
 
       dut.io.statusIn.poke(true.B)
+            dut.io.hastomakespecificmove.poke(false.B)
+            dut.io.specificallyfromwhere.poke(0.U)//doesnt matter because it is false
+
       var counter = 0
       while (dut.io.statusOut.peek().litToBoolean == false & counter < 400) {
 
