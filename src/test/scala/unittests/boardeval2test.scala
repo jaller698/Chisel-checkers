@@ -23,9 +23,17 @@ class boardeval2test extends AnyFlatSpec with ChiselScalatestTester {
     test(new boardeval2()) { dut =>
       for (i <- 0 to 31) {
         if (i == 0) {
-          dut.io.In(i).poke("b001".U) // White pawn at row 0: +1 material + 3 position = +4
+          dut.io
+            .In(i)
+            .poke(
+              "b001".U
+            ) // White pawn at row 0: +1 material + 3 position = +4
         } else if (i == 20) {
-          dut.io.In(i).poke("b001".U) // White pawn at row 5: +1 material + 0 position = +1
+          dut.io
+            .In(i)
+            .poke(
+              "b001".U
+            ) // White pawn at row 5: +1 material + 0 position = +1
         } else {
           dut.io.In(i).poke("b000".U)
         }
@@ -45,9 +53,17 @@ class boardeval2test extends AnyFlatSpec with ChiselScalatestTester {
     test(new boardeval2()) { dut =>
       for (i <- 0 to 31) {
         if (i == 0) {
-          dut.io.In(i).poke("b001".U) // White pawn at row 0: +1 + 3 = +4
+          dut.io
+            .In(i)
+            .poke(
+              "b001".U
+            ) // White pawn at row 0: +1 + 3 = +4
         } else if (i == 31) {
-          dut.io.In(i).poke("b011".U) // Black pawn at row 7: -1 + (-3) = -4
+          dut.io
+            .In(i)
+            .poke(
+              "b011".U
+            ) // Black pawn at row 7: -1 + (-3) = -4
         } else {
           dut.io.In(i).poke("b000".U)
         }
@@ -61,4 +77,3 @@ class boardeval2test extends AnyFlatSpec with ChiselScalatestTester {
     }
   }
 }
-
