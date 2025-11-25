@@ -100,17 +100,18 @@ class ChiselCheckers extends Module {
       }
     }
     is(sOpponent) {
-      // val legalMovesForWhite = Module(new LegalMovesForWhite())
-      // legalMovesForWhite.io.In := board
-      // val randopponent = Module(new RandomAttack)
-      // randopponent.io.board := board
-      // randopponent.io.AtkPresent := legalMovesForWhite.io.forcedMoves
-      // randopponent.io.whereWeCanMove := legalMovesForWhite.io.whereWeCanMove
-      // val extraAttack = Module(new ExtraAttack())
-      // extraAttack.io.board := randopponent.io.boardWrite
-      // extraAttack.io.piece := randopponent.io.movedOne
-      // board := extraAttack.io.boardWrite
-      stateReg := sOutput
+      val legalMovesForWhite = Module(new LegalMovesForWhite())
+      legalMovesForWhite.io.In := board
+      val randopponent = Module(new RandOpp())
+      randopponent.io.board := board
+      randopponent.io.atkPres := legalMovesForWhite.io.forcedMoves
+      randopponent.io.whereWeCanMove := legalMovesForWhite.io.whereWeCanMove
+      randopponent.io.req := true.B
+      when(randopponent.io.ready) {
+        board := randopponent.io.boardWrite
+        stateReg := sOutput
+        randopponent.io.req := false.B
+      }
     }
     is(sOutput) {
       io.valid := true.B
