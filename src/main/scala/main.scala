@@ -82,12 +82,7 @@ class ChiselCheckers extends Module {
           moveValidator.io.board := board
           moveValidator.io.from := io.from
           moveValidator.io.to := io.to
-          // TODO: This should not be a input. It should be derived from the piece at 'from' in the component.
-          moveValidator.io.color := Mux(
-            board(io.from) === sBlack || board(io.from) === sBlackKing,
-            0.U,
-            1.U
-          )
+          moveValidator.io.color := 0.U
           isMoveValidReg := moveValidator.io.ValidMove
           colorAtTileReg := sEmpty
           when(moveValidator.io.ValidMove) {
@@ -105,13 +100,16 @@ class ChiselCheckers extends Module {
       }
     }
     is(sOpponent) {
-      val legalMovesForWhite = Module(new LegalMovesForWhite())
-      legalMovesForWhite.io.In := board
-      val randopponent = Module(new RandomAttack)
-      randopponent.io.board := board
-      randopponent.io.AtkPresent := legalMovesForWhite.io.forcedMoves
-      randopponent.io.whereWeCanMove := legalMovesForWhite.io.whereWeCanMove
-      board := randopponent.io.boardWrite
+      // val legalMovesForWhite = Module(new LegalMovesForWhite())
+      // legalMovesForWhite.io.In := board
+      // val randopponent = Module(new RandomAttack)
+      // randopponent.io.board := board
+      // randopponent.io.AtkPresent := legalMovesForWhite.io.forcedMoves
+      // randopponent.io.whereWeCanMove := legalMovesForWhite.io.whereWeCanMove
+      // val extraAttack = Module(new ExtraAttack())
+      // extraAttack.io.board := randopponent.io.boardWrite
+      // extraAttack.io.piece := randopponent.io.movedOne
+      // board := extraAttack.io.boardWrite
       stateReg := sOutput
     }
     is(sOutput) {
