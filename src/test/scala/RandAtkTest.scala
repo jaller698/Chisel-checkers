@@ -79,14 +79,37 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
 
       dut.io.boardWrite(23).expect(sEmpty)
       dut.io.boardWrite(18).expect(sWhite)
-      dut.io.boardWrite(21).expect(sWhite)
       dut.io.boardWrite(22).expect(sWhite)
+      dut.io.boardWrite(21).expect(sWhite)
       dut.io.boardWrite(20).expect(sWhite)
+    }
+  }
+  it should "ExtraAttack" in {
+    test(new ExtraAttack()) { dut =>
+      val sEmpty :: sWhite :: sWhiteKing :: sBlack :: sBlackKing :: Nil =
+        Enum(5)
+
+      val testVectors = Seq.tabulate(32) { i =>
+        if (i == 0) sBlack
+        else if (i == 14) sBlack
+        else if (i == 15) sBlack
+        else if (i == 18) sWhite
+        else sEmpty
+      }
+
+
+      for (i <- 0 to 31) {
+        dut.io.board(i).poke(testVectors(i))
+      }
+      dut.io.piece.poke(18)
+
+      dut.clock.step()
+
+      dut.io.boardWrite(18).expect(sEmpty)
+      dut.io.boardWrite(14).expect(sEmpty)
+      dut.io.boardWrite(9).expect(sWhite)
+      dut.io.moved.expect(true.B)
       
-
-
-
-
     }
   }
 
