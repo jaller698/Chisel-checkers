@@ -124,7 +124,8 @@ class ExtraAttack extends Module {
   io.boardWrite := boardTMP
 
   val rowa = (io.piece / 4.U)
-  val rola = ((io.piece / 4.U) + 1.U) % 2.U + (io.piece % 4.U)+(io.piece % 4.U)
+  val rola =
+    ((io.piece / 4.U) + 1.U) % 2.U + (io.piece % 4.U) + (io.piece % 4.U)
 
   when(rowa % 2.U === 0.U) {
     when(rowa - 2.U >= 0.U) {

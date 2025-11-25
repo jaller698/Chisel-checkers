@@ -4,8 +4,7 @@ import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-
-class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  {
+class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers {
 
   behavior of "RandAtk"
 
@@ -21,8 +20,8 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
         else sEmpty
       }
       val testAtks = Seq.tabulate(128) { i =>
-        if (i == 85) true.B //21*4 +1 (3 is up left, 1 is up right)
-        else if (i == 83) true.B //20*4 +3 (3 is up left, 1 is up right)
+        if (i == 85) true.B // 21*4 +1 (3 is up left, 1 is up right)
+        else if (i == 83) true.B // 20*4 +3 (3 is up left, 1 is up right)
         else false.B
       }
       dut.io.AtkPresent.poke(true.B)
@@ -55,10 +54,10 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
         else sEmpty
       }
 
-      //space*4 + 0/1/2/3 (0, is move up left, 1 atk up left, 2 move up right, 3 atk up right)
+      // space*4 + 0/1/2/3 (0, is move up left, 1 atk up left, 2 move up right, 3 atk up right)
       val testAtks = Seq.tabulate(128) { i =>
-        if (i == 82) true.B 
-        else if (i == 84) true.B 
+        if (i == 82) true.B
+        else if (i == 84) true.B
         else if (i == 86) true.B
         else if (i == 88) true.B
         else if (i == 90) true.B
@@ -97,7 +96,6 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
         else sEmpty
       }
 
-
       for (i <- 0 to 31) {
         dut.io.board(i).poke(testVectors(i))
       }
@@ -109,7 +107,7 @@ class RandAtkTest extends AnyFlatSpec with ChiselScalatestTester with Matchers  
       dut.io.boardWrite(14).expect(sEmpty)
       dut.io.boardWrite(9).expect(sWhite)
       dut.io.moved.expect(true.B)
-      
+
     }
   }
 
