@@ -24,6 +24,41 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
     }
   }
 
+  def parseInput(): Int = {
+    while (true) {
+      val input = scala.io.StdIn.readLine()
+      // match either a integer or a int x int format
+      val pos = if (input.matches("""\d+""")) {
+        input.toInt
+      } else if (input.matches("""\d+\s*[xX]\s*\d+""")) {
+        val parts = input.split("[xX]").map(_.trim.toInt)
+        val row = parts(0)
+        val col = parts(1)
+        println(s"Parsed coordinates: row=$row, col=$col")
+        if (
+          row < 0 || row >= 8 || col < 0 || col >= 8 || (row + col) % 2 != 1
+        ) {
+          println(
+            "Invalid board coordinates entered. Try again."
+          )
+          -1
+        } else {
+          row * 4 + (col / 2)
+        }
+      } else {
+        println("Invalid input format. Try again.")
+        -1
+      }
+      if (pos < 0 || pos >= 32) {
+        println("Invalid position entered. Try again.")
+        // skip to next iteration
+      } else {
+        return pos
+      }
+    }
+    return -1 // should never reach here
+  }
+
   def printBoard(c: ChiselCheckers): Unit = {
     val board = Array.fill(8, 8)(' ')
     for (i <- 0 until 32) {
@@ -74,6 +109,7 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
     test(new ChiselCheckers()).withAnnotations(
       Seq( /* VerilatorBackendAnnotation, */ WriteVcdAnnotation)
     ) { c =>
+      var firstTime = true
       // Apply reset for one cycle
       c.reset.poke(true.B)
       c.clock.step(1)
@@ -86,13 +122,12 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
       // Wait for valid, then ack
       while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
       c.io.ack.poke(true.B)
-      c.clock.step(1)
+      while (c.io.valid.peek().litToBoolean) { c.clock.step(1) }
       c.io.ack.poke(false.B)
       println("Board initialized to empty.")
 
       // Switch to read op (op = 2)
       c.io.op.poke(2.U)
-      c.clock.step(1)
       // Wait for valid, then ack
       while (!c.io.valid.peek().litToBoolean) { c.clock.step(1) }
       c.io.ack.poke(true.B)
@@ -102,23 +137,25 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
       printBoard(c)
 
       // start play logic
-
       while (true) {
         println(
           "What do you want to do? (type 'q' to finish test), otherwise press enter to continue"
         )
-        // Read user input with a time out to not block indefinitely
-        val input = readLineWithTimeout(15.seconds).getOrElse("q")
+        // Read user input with a time out to not block indefinitely (only first time)
+        val input = if (firstTime) {
+          firstTime = false
+          readLineWithTimeout(20.seconds).getOrElse("q")
+        } else {
+          scala.io.StdIn.readLine().trim.toLowerCase()
+        }
         if (input == "q") {
           // skip further processing and exit
           cancel("Thank you for playing!")
         } else {
           println("Please enter the from position (0-31):")
-          val fromInput = scala.io.StdIn.readLine()
-          val fromPos = fromInput.toInt
+          val fromPos = parseInput()
           println("Please enter the to position (0-31):")
-          val toInput = scala.io.StdIn.readLine()
-          val toPos = toInput.toInt
+          val toPos = parseInput()
 
           // poke the from and to positions
           c.io.from.poke(fromPos.U)

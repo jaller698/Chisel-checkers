@@ -12,6 +12,31 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
       else Empty
     }
 
+  private def getBoardFromDut(
+      dut: ChiselCheckers
+  ): Vector[Piece] = {
+
+    dut.io.ack.poke(false.B)
+    dut.io.op.poke("b10".U)
+    dut.clock.step()
+    Vector.tabulate(32) { i =>
+      dut.io.from.poke(i.U)
+      dut.clock.step(1)
+      while (!dut.io.valid.peek().litToBoolean) { dut.clock.step(1) }
+      val color = dut.io.colorAtTile.peek().litValue.toInt
+      dut.io.ack.poke(true.B)
+      dut.clock.step(1)
+      dut.io.ack.poke(false.B)
+      color match {
+        case 0 => Empty
+        case 1 => White
+        case 2 => WhiteKing
+        case 3 => Black
+        case 4 => BlackKing
+      }
+    }
+  }
+
   behavior of "ChiselCheckers"
 
   it should "pass" in {
@@ -124,8 +149,11 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
       Seq( /* VerilatorBackendAnnotation, */ WriteVcdAnnotation)
     ) { dut =>
       dut.io.ack.poke(false.B)
-      var b = initialBoard
-      val fromSet = Seq(8, 9, 10, 11)
+      val fromSet = Seq(
+        8,
+        9,
+        10
+      ) // TODO: We need to add a check for forced moves here, but now this set should not have any.
       dut.io.op.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(false.B)
@@ -134,25 +162,33 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
       dut.io.ack.poke(true.B)
       dut.clock.step()
       dut.io.ack.poke(false.B)
-      dut.io.op.poke("b01".U)
-      for (from <- fromSet; to <- 0 until 32) {
+
+      for (from <- fromSet; to <- 12 until 32) {
+        // Always get the current board from the DUT
+        val b = getBoardFromDut(dut)
+        val ref = isMoveValid(from, to, b)
+        // Set up move
         dut.io.from.poke(from.U)
         dut.io.to.poke(to.U)
-        dut.clock.step()
+        dut.io.op.poke(1.U) // play op
         while (!dut.io.valid.peek().litToBoolean) { dut.clock.step() }
-        val ref = isMoveValid(from, to, b)
         if (ref) {
           dut.io.isMoveValid
             .expect(true.B, s"from $from to $to should be valid")
-          // update board if move is valid
-          b = applyMove(from, to, b).get
-        } else
+          // Apply move in DUT
+          dut.io.ack.poke(true.B)
+          dut.clock.step()
+          // Wait for valid to go low (move applied)
+          while (dut.io.valid.peek().litToBoolean) { dut.clock.step() }
+          dut.io.ack.poke(false.B)
+        } else {
           dut.io.isMoveValid
             .expect(false.B, s"from $from to $to should be invalid")
-        dut.io.ack.poke(true.B)
-        dut.clock.step()
-        dut.io.valid.expect(false.B)
-        dut.io.ack.poke(false.B)
+          dut.io.ack.poke(true.B)
+          dut.clock.step()
+          while (dut.io.valid.peek().litToBoolean) { dut.clock.step() }
+          dut.io.ack.poke(false.B)
+        }
       }
     }
   }

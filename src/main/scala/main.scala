@@ -28,7 +28,7 @@ class ChiselCheckers extends Module {
   // Op selector states
   val sBuild :: sPlay :: sView :: Nil = Enum(3)
   // State machine states
-  val sIdle :: sProcessing :: sOutput :: Nil = Enum(3)
+  val sIdle :: sPlayer :: sOpponent :: sOutput :: Nil = Enum(4)
   val board_size = 32
 
   val board = RegInit(VecInit(Seq.tabulate(board_size) { i =>
@@ -52,10 +52,10 @@ class ChiselCheckers extends Module {
     is(sIdle) {
       io.valid := false.B
       when(io.op === sBuild || io.op === sPlay || io.op === sView) {
-        stateReg := sProcessing
+        stateReg := sPlayer
       }
     }
-    is(sProcessing) {
+    is(sPlayer) {
       switch(io.op) {
         is(sBuild) {
           when(io.reset) {
@@ -75,30 +75,43 @@ class ChiselCheckers extends Module {
             isMoveValidReg := false.B
             colorAtTileReg := sEmpty
           }
+          stateReg := sOutput
         }
         is(sPlay) {
           val moveValidator = Module(new MoveValidator())
           moveValidator.io.board := board
           moveValidator.io.from := io.from
           moveValidator.io.to := io.to
-          // TODO: This should not be a input. It should be derived from the piece at 'from' in the component.
-          moveValidator.io.color := Mux(
-            board(io.from) === sBlack || board(io.from) === sBlackKing,
-            0.U,
-            1.U
-          )
+          moveValidator.io.color := 0.U
           isMoveValidReg := moveValidator.io.ValidMove
           colorAtTileReg := sEmpty
           when(moveValidator.io.ValidMove) {
+            stateReg := sOpponent
             board := moveValidator.io.newboard
+          }.otherwise {
+            stateReg := sOutput
           }
         }
         is(sView) {
+          stateReg := sOutput
           colorAtTileReg := board(io.from)
           isMoveValidReg := false.B
         }
       }
-      stateReg := sOutput
+    }
+    is(sOpponent) {
+      val legalMovesForWhite = Module(new LegalMovesForWhite())
+      legalMovesForWhite.io.In := board
+      val randopponent = Module(new RandOpp())
+      randopponent.io.board := board
+      randopponent.io.atkPres := legalMovesForWhite.io.forcedMoves
+      randopponent.io.whereWeCanMove := legalMovesForWhite.io.whereWeCanMove
+      randopponent.io.req := true.B
+      when(randopponent.io.ready) {
+        board := randopponent.io.boardWrite
+        stateReg := sOutput
+        randopponent.io.req := false.B
+      }
     }
     is(sOutput) {
       io.valid := true.B
