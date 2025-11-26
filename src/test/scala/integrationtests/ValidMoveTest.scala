@@ -149,7 +149,11 @@ class ValidMoveTest extends AnyFlatSpec with ChiselScalatestTester {
       Seq( /* VerilatorBackendAnnotation, */ WriteVcdAnnotation)
     ) { dut =>
       dut.io.ack.poke(false.B)
-      val fromSet = Seq(8, 9, 10, 11)
+      val fromSet = Seq(
+        8,
+        9,
+        10
+      ) // TODO: We need to add a check for forced moves here, but now this set should not have any.
       dut.io.op.poke("b00".U)
       dut.io.reset.poke(true.B)
       dut.io.resetEmpty.poke(false.B)
