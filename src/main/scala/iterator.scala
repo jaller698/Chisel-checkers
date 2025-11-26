@@ -9,10 +9,8 @@ INTERFACE:
     When the calculation is done, the Iterator sets statusOut to true.
     Then, when the outer component sets statusOut to false, Iterator sets statusOut to false.
 
-    It calculates for white. As such, I make it not check more if it is a black move.     
+    It calculates for white. As such, I make it not check more if it is a black move.
  */
-
-
 
 class Opponent extends Module {
 
@@ -136,10 +134,10 @@ class Opponent extends Module {
     is("b01".U) { // calculating.
 
       // from index, figure out what to check.
-     // printf(
-       // p"Move from $counter_index to $to_for_now, " +
-        //  "which is a valid move ${movevalidator.io.ValidMove} \n \n"
-      //)
+      // printf(
+      // p"Move from $counter_index to $to_for_now, " +
+      //  "which is a valid move ${movevalidator.io.ValidMove} \n \n"
+      // )
 
       switch(counter_index % 10.U) {
         is(0.U) {
@@ -238,14 +236,15 @@ class Opponent extends Module {
       when(counter_index >= currentMax) {
         next_state := "b10".U
       }
-      when((
-        io.In(from_for_now) === "b000".U||
-        io.In(from_for_now)=== "b011".U||//black pawn
-        io.In(from_for_now)==="b100".U
-        
+      when(
+        (
+          io.In(from_for_now) === "b000".U ||
+            io.In(from_for_now) === "b011".U || // black pawn
+            io.In(from_for_now) === "b100".U
         )
-      
-       && counter_index % 10.U === 0.U) {
+
+          && counter_index % 10.U === 0.U
+      ) {
         counter_index := counter_index + 10.U
       }.otherwise {
         counter_index := counter_index + 1.U
