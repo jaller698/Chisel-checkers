@@ -88,7 +88,7 @@ class MoveValidator extends Module {
     is(7.S(6.W)) { // jump left forward
       validDifference := (io.from(1, 0) =/= 0.U)
 
-      //when(io.from% 8.U<= 4.U) {
+      // when(io.from% 8.U<= 4.U) {
       when(io.from(2) === 0.U) {
         coordinateInBetween := io.from + 4.U
       }.otherwise {
@@ -110,8 +110,8 @@ class MoveValidator extends Module {
     }
     is(-9.S(6.W)) { // jump right backward
       validDifference := (io.from(1, 0) =/= 0.U)
-      //when(io.from(2, 0) <= 4.U) {
-      
+      // when(io.from(2, 0) <= 4.U) {
+
       when(io.from(2) === 0.U) {
         coordinateInBetween := io.from - 4.U
       }.otherwise {
