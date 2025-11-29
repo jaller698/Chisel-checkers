@@ -72,7 +72,7 @@ class PlayerIOTest extends AnyFlatSpec with ChiselScalatestTester {
       c.io.ack.poke(false.B)
 
       val displayChar: Char = colorAtTile match {
-        case 0 => '·' // empty dark square (use a visible dot)
+        case 0 => '_' // empty dark square (use a visible dot)
         case 1 => 'w' // white piece
         case 3 => 'b' // black piece
         case 2 => 'W' // example: white king (if used)
