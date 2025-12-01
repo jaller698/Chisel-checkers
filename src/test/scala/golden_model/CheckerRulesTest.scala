@@ -262,4 +262,106 @@ class CheckerRulesTest extends AnyFlatSpec with Matchers {
     // Check if second jump is available from new position
     hasAvailableJumps(13, afterFirst.get) shouldBe true
   }
+
+  behavior of "CheckerRules.hasValidMoves"
+
+  it should "detect valid moves for white at start of game" in {
+    val b = initialBoard
+    hasValidMoves(b, isWhiteTurn = true) shouldBe true
+  }
+
+  it should "detect valid moves for black at start of game" in {
+    val b = initialBoard
+    hasValidMoves(b, isWhiteTurn = false) shouldBe true
+  }
+
+  it should "return false when player has no pieces" in {
+    val b = Vector.fill(32)(Empty).updated(10, Black)
+    hasValidMoves(b, isWhiteTurn = true) shouldBe false
+  }
+
+  it should "return false when all pieces are blocked" in {
+    // White piece at position 13 (row 3, col 2)
+    val b = Vector
+      .fill(32)(Empty)
+      .updated(13, White)
+      .updated(8, Black)
+      .updated(9, Black)
+      .updated(4, Black) // Block jump landing left
+      .updated(6, Black) // Block jump landing right
+    hasValidMoves(b, isWhiteTurn = true) shouldBe false
+  }
+
+  it should "return true when only jumps are available" in {
+    val b = Vector
+      .fill(32)(Empty)
+      .updated(20, White)
+      .updated(16, Black)
+      .updated(13, Empty)
+    hasValidMoves(b, isWhiteTurn = true) shouldBe true
+  }
+
+  it should "return true when only simple moves are available" in {
+    val b = Vector.fill(32)(Empty).updated(20, White).updated(16, Empty)
+    hasValidMoves(b, isWhiteTurn = true) shouldBe true
+  }
+
+  it should "return false when player can only move to occupied squares" in {
+    // White piece at position 4 (row 1, col 0)
+    // Tries to move to position 0 (row 0, col 1)
+    // Position 0 is occupied by White
+    // Position 0 cannot move further (end of board)
+    val b = Vector
+      .fill(32)(Empty)
+      .updated(4, White)
+      .updated(0, White)
+    hasValidMoves(b, isWhiteTurn = true) shouldBe false
+  }
+
+  behavior of "CheckerRules.checkGameOver"
+
+  it should "return None when game is in progress" in {
+    val b = initialBoard
+    checkGameOver(b, isWhiteTurn = true) shouldBe None
+  }
+
+  it should "declare Black winner when White has no pieces" in {
+    val b = Vector.fill(32)(Empty).updated(0, Black)
+    checkGameOver(b, isWhiteTurn = true) shouldBe Some(false)
+  }
+
+  it should "declare White winner when Black has no pieces" in {
+    val b = Vector.fill(32)(Empty).updated(31, White)
+    checkGameOver(b, isWhiteTurn = false) shouldBe Some(true)
+  }
+
+  it should "declare Black winner when White is blocked (stalemate)" in {
+    // Using the blocked scenario from hasValidMoves
+    val b = Vector
+      .fill(32)(Empty)
+      .updated(13, White)
+      .updated(8, Black)
+      .updated(9, Black)
+      .updated(4, Black)
+      .updated(6, Black)
+    
+    // White turn, but cannot move -> Black wins (false)
+    checkGameOver(b, isWhiteTurn = true) shouldBe Some(false)
+  }
+
+  it should "declare White winner when Black is blocked (stalemate)" in {
+    // Black at 13 (Row 3, Col 2).
+    // Moves to Row 4: Col 1 (Index 16), Col 3 (Index 17).
+    // Jumps to Row 5: Col 0 (Index 20), Col 4 (Index 22).
+    val b = Vector
+      .fill(32)(Empty)
+      .updated(13, Black)
+      .updated(16, White)
+      .updated(17, White)
+      .updated(20, White)
+      .updated(22, White)
+
+    // Black turn, but cannot move -> White wins (true)
+    checkGameOver(b, isWhiteTurn = false) shouldBe Some(true)
+  }
 }
