@@ -16,6 +16,11 @@ This project implements a complete Checkers game engine in hardware, capable of:
 
 The design targets FPGA implementation and has been synthesized for the Xilinx Artix-7 (Nexys 4 DDR board).
 
+## Documentation
+
+- **[Hardware Modules](src/main/scala/README.md)** - Overview of source code modules
+- **[Test Suite](src/test/scala/README.md)** - Overview of test organization
+
 ## Getting Started
 
 ### Prerequisites
@@ -121,7 +126,7 @@ Generate synthesizable Verilog/SystemVerilog output:
 sbt run
 ```
 
-This produces [`ChiselCheckers.sv`](ChiselCheckers.sv) in the project root.
+This produces `ChiselCheckers.sv` in the project root.
 
 ### Playing the Game
 
@@ -147,7 +152,7 @@ vivado -mode batch -source scripts/synth.tcl
 
 Results will be in the [`vivado_build/`](vivado_build/) directory, including:
 - Utilization report: [`ChiselCheckers_synth_utilization.txt`](vivado_build/ChiselCheckers_synth_utilization.txt)
-- Design checkpoint: `ChiselCheckers_synth.dcp`
+
 
 **Current Resource Usage** (Artix-7 xc7a100t):
 - LUTs: 622
@@ -156,20 +161,23 @@ Results will be in the [`vivado_build/`](vivado_build/) directory, including:
 
 ## Architecture
 
-#### Hardware Modules
+### Hardware Modules
 
-- **[`ChiselCheckers`](src/main/scala/main.scala)**: Top-level module coordinating all game functionality
-- **[`MoveValidator2`](src/main/scala/MoveValidator2.scala)**: Core logic for validating moves according to Checkers rules (current implementation)
-- **[`MoveValidator`](src/main/scala/MoveValidator.scala)**: Earlier version of move validation logic
-- **[`BlackForcedMoves`](src/main/scala/blackforcedmoves.scala)** / **[`WhiteForcedMoves`](src/main/scala/whiteforcedmoves.scala)**: Detect mandatory jump situations
-- **[`LegalMovesForWhite`](src/main/scala/legalmovesforwhite.scala)**: Enumerate all legal moves for white pieces
-- **[`BoardEval1`](src/main/scala/boardeval1.scala)**: Simple board evaluation function (material count)
-- **[`Iterator`](src/main/scala/iterator.scala)**: AI opponent implementation (work in progress)
+- **[`ChiselCheckers`](src/main/scala/main.scala)**: Top-level module with three operational modes (Build, Play, View)
+- **[`MoveValidator2`](src/main/scala/MoveValidator2.scala)**: Core move validation implementing Checkers rules
+- **[`BlackForcedMoves`](src/main/scala/blackforcedmoves.scala)** / **[`WhiteForcedMoves`](src/main/scala/whiteforcedmoves.scala)**: Detect mandatory jumps
+- **[`LegalMovesForWhite`](src/main/scala/legalmovesforwhite.scala)**: Enumerate all legal moves for white
+- **[`BoardEval1`](src/main/scala/boardeval1.scala)** / **[`BoardEval2`](src/main/scala/boardeval2.scala)**: Board evaluation functions
+- **[`Opponent`](src/main/scala/iterator.scala)** / **[`RandAtk`](src/main/scala/RandAtk.scala)**: AI opponent implementations (work in progress)
 
-#### Verification Components
+See [Hardware Modules documentation](src/main/scala/README.md) for details.
 
-- **[`CheckerRules`](src/test/scala/golden_model/CheckerRules.scala)**: Golden reference model implementing Checkers rules in software. This serves as the source of truth for validating hardware behavior, ensuring the hardware implementation matches expected game logic.
-- **[`CheckerRulesTest`](src/test/scala/golden_model/CheckerRulesTest.scala)**: Comprehensive tests for the golden model itself
+### Verification Components
+
+- **[`CheckerRules`](src/test/scala/golden_model/CheckerRules.scala)**: Golden reference model implementing Checkers rules in software. Serves as source of truth for validating hardware behavior.
+- **[`CheckerRulesTest`](src/test/scala/golden_model/CheckerRulesTest.scala)**: Tests for the golden model
+
+See [Test Suite documentation](src/test/scala/README.md) for test organization.
 
 ### Piece Encoding
 
@@ -220,57 +228,17 @@ The hardware enforces official Checkers rules:
    - White pawn reaching row 0 becomes white king
    - Black pawn reaching row 7 becomes black king
 
-<!-- ## Operational Modes
-
-The [`ChiselCheckers`](src/main/scala/main.scala) module operates in three modes, controlled by the `mode` input:
-
-### Mode 00: Build Board
-
-Configure the initial board state:
-- **Reset**: Assert `reset` high with `resetEmpty`:
-  - `resetEmpty = false`: Initialize standard starting position
-  - `resetEmpty = true`: Clear board to empty
-- **Place Pieces**: After reset, use `placePiece` (position) and `colorToPut` (0=black, 1=white) to manually place pieces
-
-### Mode 01: Play Move
-
-Validate and execute moves:
-- Set `from` and `to` positions (0-31)
-- Read `isMoveValid` output:
-  - `true`: Move is legal and has been applied
-  - `false`: Move is illegal, board unchanged
-- The validator enforces:
-  - Correct piece colors
-  - Valid diagonal movements
-  - Mandatory jump rules
-  - King promotion at end rows
-
-### Mode 10: View Board
-
-Inspect board state:
-- Set `from` to the position to query (0-31)
-- Read `colorAtTile` output (3-bit piece encoding) -->
-
 ## Testing
 
-### Test Structure
+### Test Organization
 
 Tests are organized in [`src/test/scala/`](src/test/scala/):
 
-- **[`unittests/`](src/test/scala/unittests/)**: Component-level tests
-  - [`movevalidatortest.scala`](src/test/scala/unittests/movevalidatortest.scala): Move validation logic
-  - [`blackforcedmovestest.scala`](src/test/scala/unittests/blackforcedmovestest.scala): Jump detection for black
-  - [`whiteforcedmovestest.scala`](src/test/scala/unittests/whiteforcedmovestest.scala): Jump detection for white
-  - [`legalmovesforwhitetest.scala`](src/test/scala/unittests/legalmovesforwhitetest.scala): Legal move enumeration
+- **[`unittests/`](src/test/scala/unittests/)**: Component-level tests for individual modules
+- **[`integrationtests/`](src/test/scala/integrationtests/)**: System-level tests including interactive gameplay
+- **[`golden_model/`](src/test/scala/golden_model/)**: Reference implementation for validation
 
-- **[`integrationtests/`](src/test/scala/integrationtests/)**: System-level tests
-  - [`IntegrationTests.scala`](src/test/scala/integrationtests/IntegrationTests.scala): Multi-mode workflows
-  - [`ValidMoveTest.scala`](src/test/scala/integrationtests/ValidMoveTest.scala): Comprehensive move validation
-  - [`play_test.scala`](src/test/scala/integrationtests/play_test.scala): Interactive gameplay
-
-- **[`golden_model/`](src/test/scala/golden_model/)**: Reference implementation
-  - [`CheckerRules.scala`](src/test/scala/golden_model/CheckerRules.scala): Software reference for validation
-  - [`CheckerRulesTest.scala`](src/test/scala/golden_model/CheckerRulesTest.scala): Reference model tests
+See [Test Suite documentation](src/test/scala/README.md) for details on running tests.
 
 ## Development
 
@@ -280,18 +248,22 @@ Tests are organized in [`src/test/scala/`](src/test/scala/):
 Chisel-checkers/
 ├── src/
 │   ├── main/scala/          # Hardware modules
-│   │   ├── main.scala       # Top-level ChiselCheckers
-│   │   ├── MoveValidator.scala
+│   │   ├── main.scala
 │   │   ├── MoveValidator2.scala
 │   │   ├── blackforcedmoves.scala
 │   │   ├── whiteforcedmoves.scala
 │   │   ├── legalmovesforwhite.scala
 │   │   ├── boardeval1.scala
-│   │   └── iterator.scala   # (Work in progress)
+│   │   ├── boardeval2.scala
+│   │   ├── iterator.scala
+│   │   ├── RandAtk.scala
+│   │   └── README.md
 │   └── test/scala/          # Test suites
 │       ├── unittests/
 │       ├── integrationtests/
-│       └── golden_model/
+│       ├── golden_model/
+│       ├── RandAtkTest.scala
+│       └── README.md
 ├── scripts/
 │   └── synth.tcl            # Vivado synthesis script
 ├── build.sbt                # SBT build configuration
@@ -299,48 +271,17 @@ Chisel-checkers/
 └── README.md
 ```
 
-## Editor Setup
-
 ### Code Formatting
 
-This project uses [Scalafmt](https://scalameta.org/scalafmt/) for consistent code formatting. The configuration is in [`.scalafmt.conf`](.scalafmt.conf).
+This project uses [Scalafmt](https://scalameta.org/scalafmt/) for consistent code formatting. Configuration: [`.scalafmt.conf`](.scalafmt.conf).
 
-### VS Code / Vim / Emacs / Sublime Text / Eclipse
+**VS Code / Vim / Emacs / Sublime Text / Eclipse:**
+- Install the [Metals extension](https://scalameta.org/metals/)
+- Format: `Shift+Alt+F` (Windows/Linux) or `Shift+Option+F` (macOS)
 
-These editors use the [Metals language server](https://scalameta.org/metals/) for Scala support:
-
-**VS Code:**
-1. Install the [Metals extension](https://marketplace.visualstudio.com/items?itemName=scalameta.metals)
-2. Open the project - Metals will automatically detect `.scalafmt.conf`
-3. Format: `Shift+Alt+F` (Windows/Linux) or `Shift+Option+F` (macOS)
-
-**Other editors:** See [Metals installation guide](https://scalameta.org/metals/docs/) for setup instructions.
-
-### IntelliJ IDEA
-
-The Scala plugin has built-in Scalafmt support:
-
-1. Open the project - you'll be prompted to use Scalafmt
-2. Or manually: `Preferences > Editor > Code Style > Scala` → set "Formatter" to "Scalafmt"
-3. Format: `Opt+Cmd+L` (macOS) or `Ctrl+Alt+L` (Windows/Linux)
-
-**Enable format on save:** `Preferences > Editor > Code Style > Scala` → check "Reformat on file save"
-
-<!-- ## Contributing
-
-Contributions are welcome! Areas for improvement:
-
-- [ ] Multi-jump sequence support
-- [ ] Complete AI opponent ([`iterator.scala`](src/main/scala/iterator.scala) in progress)
-- [ ] Advanced board evaluation functions
-- [ ] UART/external interface for hardware testing
-- [ ] Timing optimization for higher clock frequencies
-- [ ] Support for different board variants
-
-Please ensure:
-1. All tests pass: `sbt test`
-2. Code is formatted: `sbt scalafmtAll`
-3. New features include tests -->
+**IntelliJ IDEA:**
+- `Preferences > Editor > Code Style > Scala` → set "Formatter" to "Scalafmt"
+- Format: `Opt+Cmd+L` (macOS) or `Ctrl+Alt+L` (Windows/Linux)
 
 ## 📄 License
 
@@ -368,7 +309,5 @@ For more information about GPL-3.0, visit: https://www.gnu.org/licenses/gpl-3.0.
 - Tested with ScalaTest and ChiselTest frameworks
 
 ---
-
-<!-- **Status**: ✅ Core functionality complete | 🚧 AI opponent in development -->
 
 For questions or issues, please open an issue on GitHub.
