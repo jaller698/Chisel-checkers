@@ -27,7 +27,7 @@ The design targets FPGA implementation and has been synthesized for the Xilinx A
 
 #### 1. **Java Development Kit (JDK)**: Version 8 or higher
    ```bash
-   java -version
+   java --version
    ```
 
 #### 2. **Scala Build Tool (sbt)**: Version 1.11.7 or compatible
@@ -168,7 +168,7 @@ Results will be in the [`vivado_build/`](vivado_build/) directory, including:
 - **[`BlackForcedMoves`](src/main/scala/blackforcedmoves.scala)** / **[`WhiteForcedMoves`](src/main/scala/whiteforcedmoves.scala)**: Detect mandatory jumps
 - **[`LegalMovesForWhite`](src/main/scala/legalmovesforwhite.scala)**: Enumerate all legal moves for white
 - **[`BoardEval1`](src/main/scala/boardeval1.scala)** / **[`BoardEval2`](src/main/scala/boardeval2.scala)**: Board evaluation functions
-- **[`Opponent`](src/main/scala/iterator.scala)** / **[`RandAtk`](src/main/scala/RandAtk.scala)**: AI opponent implementations (work in progress)
+- **[`Opponent`](src/main/scala/iterator.scala)** / **[`RandAtk`](src/main/scala/RandAtk.scala)**: AI opponent implementations
 
 See [Hardware Modules documentation](src/main/scala/README.md) for details.
 
