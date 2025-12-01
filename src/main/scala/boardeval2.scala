@@ -25,39 +25,31 @@ class boardeval2() extends Module {
     val material_score = WireDefault(0.S(5.W))
     val position_score = WireDefault(0.S(5.W))
 
-    // Obtain material score as in boardeval1.
+    // Obtain material score and position bonus
     switch(io.In(i)) {
-      is("b000".U) { material_score := 0.S }
-      is("b001".U) { material_score := 1.S }
-      is("b010".U) { material_score := 3.S }
-      is("b011".U) { material_score := -1.S }
-      is("b100".U) { material_score := -3.S }
-    }
-
-    when(io.In(i) === "b001".U) { // white pawn
-      // row 0 = +3, row 1 = +2, row 2 = +1, row 3+ = 0
-      when(row_pos === 0.U) {
-        position_score := 3.S
-      }.elsewhen(row_pos === 1.U) {
-        position_score := 2.S
-      }.elsewhen(row_pos === 2.U) {
-        position_score := 1.S
-      }.otherwise {
+      is("b000".U) {
+        material_score := 0.S
         position_score := 0.S
       }
-    }.elsewhen(io.In(i) === "b011".U) { // black pawn
-      // row 7 = -3, row 6 = -2, row 5 = -1, row 4- = 0
-      when(row_pos === 7.U) {
-        position_score := -3.S
-      }.elsewhen(row_pos === 6.U) {
-        position_score := -2.S
-      }.elsewhen(row_pos === 5.U) {
-        position_score := -1.S
-      }.otherwise {
+      is("b001".U) { // white pawn
+        material_score := 1.S
+        // row 0 = +3, row 1 = +2, row 2 = +1, row 3+ = 0
+        position_score := Mux(row_pos <= 2.U, (3.S - row_pos.asSInt), 0.S)
+      }
+      is("b010".U) { // white king
+        material_score := 3.S
+        position_score := 0.S
+      }
+      is("b011".U) { // black pawn
+        material_score := -1.S
+        // row 7 = -3, row 6 = -2, row 5 = -1, row 4- = 0
+        position_score := Mux(row_pos >= 5.U, (4.S - row_pos.asSInt), 0.S)
+      }
+      is("b100".U) { // black king
+        material_score := -3.S
         position_score := 0.S
       }
     }
-    // white/black Kings don't gain position bonus
 
     v(i) := material_score + position_score
   }
