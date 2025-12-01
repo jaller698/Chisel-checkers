@@ -199,4 +199,31 @@ object CheckerRules {
 
     Some(newBoard)
   }
+
+  // Check if a player has any valid moves
+  def hasValidMoves(board: Vector[Piece], isWhiteTurn: Boolean): Boolean = {
+    (0 until 32).exists { from =>
+      val piece = board(from)
+      piece != Empty && piece.isWhite == isWhiteTurn &&
+      (0 until 32).exists { to =>
+        isMoveValid(from, to, board, isWhiteTurn)
+      }
+    }
+  }
+
+  // Check if game is over and determine winner
+  def checkGameOver(
+      board: Vector[Piece],
+      isWhiteTurn: Boolean
+  ): Option[Boolean] = {
+    val whitePieces = board.exists(p => p.isWhite)
+    val blackPieces = board.exists(p => p.isBlack)
+
+    if (!whitePieces) return Some(false) // Black wins
+    if (!blackPieces) return Some(true) // White wins
+    if (!hasValidMoves(board, isWhiteTurn)) {
+      return Some(!isWhiteTurn) // Current player loses
+    }
+    None // Game continues
+  }
 }
