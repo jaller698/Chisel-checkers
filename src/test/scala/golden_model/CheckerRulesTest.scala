@@ -344,7 +344,7 @@ class CheckerRulesTest extends AnyFlatSpec with Matchers {
       .updated(9, Black)
       .updated(4, Black)
       .updated(6, Black)
-    
+
     // White turn, but cannot move -> Black wins (false)
     checkGameOver(b, isWhiteTurn = true) shouldBe Some(false)
   }
