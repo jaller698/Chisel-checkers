@@ -153,10 +153,9 @@ vivado -mode batch -source scripts/synth.tcl
 Results will be in the [`vivado_build/`](vivado_build/) directory, including:
 - Utilization report: [`ChiselCheckers_synth_utilization.txt`](vivado_build/ChiselCheckers_synth_utilization.txt)
 
-
 **Current Resource Usage** (Artix-7 xc7a100t):
-- LUTs: 622
-- Flip-Flops: 102
+- LUTs: 1557
+- Flip-Flops: 407
 - No DSP blocks or Block RAM used
 
 ## Architecture
